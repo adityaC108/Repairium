@@ -9,12 +9,26 @@ const Register = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
+  // ✅ Centralized role-based redirect
+  const getDashboardByRole = (role) => {
+    switch (role) {
+      case "admin":
+        return "/admin/dashboard";
+      case "technician":
+        return "/technician/dashboard";
+      case "user":
+      default:
+        return "/user/dashboard";
+    }
+  };
+
   const handleRegister = (data) => {
     login(data);
 
-    if (data.role === "admin") navigate("/admin/dashboard");
-    else if (data.role === "technician") navigate("/technician/dashboard");
-    else navigate("/dashboard");
+    const userRole = data?.user?.role; // ✅ correct path
+    const redirectPath = getDashboardByRole(userRole);
+
+    navigate(redirectPath);
   };
 
   return (

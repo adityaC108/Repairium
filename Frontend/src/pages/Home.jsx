@@ -1,7 +1,33 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useEffect } from "react";
+import useAuth from "../hooks/useAuth";
 
 const Home = () => {
+  const navigate = useNavigate();
+  const { isAuthenticated, role } = useAuth();
+
+  // ✅ Centralized role-based redirect
+  const getDashboardByRole = (role) => {
+    switch (role) {
+      case "admin":
+        return "/admin/dashboard";
+      case "technician":
+        return "/technician/dashboard";
+      case "user":
+      default:
+        return "/user/dashboard";
+    }
+  };
+
+  // ✅ Auto redirect if already logged in
+  useEffect(() => {
+    if (isAuthenticated) {
+      const redirectPath = getDashboardByRole(role);
+      navigate(redirectPath);
+    }
+  }, [isAuthenticated, role, navigate]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white flex flex-col items-center justify-center px-6">
       
@@ -15,7 +41,8 @@ const Home = () => {
       </motion.h1>
 
       <p className="mt-4 text-gray-400 text-center max-w-xl">
-        Book trusted technicians for your home appliances. Fast, reliable, and secure service at your doorstep.
+        Book trusted technicians for your home appliances. Fast, reliable, and
+        secure service at your doorstep.
       </p>
 
       {/* Buttons */}
@@ -37,15 +64,11 @@ const Home = () => {
 
       {/* Features */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 max-w-4xl">
-        <div className="p-6 bg-gray-800 rounded-xl">
-          ⚡ Fast Booking
-        </div>
+        <div className="p-6 bg-gray-800 rounded-xl">⚡ Fast Booking</div>
         <div className="p-6 bg-gray-800 rounded-xl">
           🛠️ Verified Technicians
         </div>
-        <div className="p-6 bg-gray-800 rounded-xl">
-          💳 Secure Payments
-        </div>
+        <div className="p-6 bg-gray-800 rounded-xl">💳 Secure Payments</div>
       </div>
     </div>
   );
