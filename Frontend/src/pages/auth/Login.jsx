@@ -7,7 +7,6 @@ const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  // ✅ Centralized role-based redirect
   const getDashboardByRole = (role) => {
     switch (role) {
       case "admin":
@@ -23,8 +22,10 @@ const Login = () => {
   const handleLogin = (data) => {
     login(data);
 
-    const role = data?.user?.role;
-    const redirectPath = getDashboardByRole(role); // ✅ use function
+    // ✅ improved role detection
+    const role = data?.role || data?.user?.role;
+
+    const redirectPath = getDashboardByRole(role);
 
     navigate(redirectPath);
   };

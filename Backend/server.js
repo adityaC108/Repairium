@@ -42,7 +42,10 @@ const limiter = rateLimit({
 
 // Middleware
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:5173", // your frontend
+  credentials: true,
+}));
 app.use(limiter);
 app.use(cookieParser()); // Add cookie parser middleware
 app.use(express.json({ limit: '10mb' }));

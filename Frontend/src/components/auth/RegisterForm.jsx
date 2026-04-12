@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import API from "../../services/api";
+import { FiEye, FiEyeOff } from "react-icons/fi"; // 👁️ add this
 
 const RegisterForm = ({ role, onRegister }) => {
   const navigate = useNavigate();
@@ -22,14 +23,18 @@ const RegisterForm = ({ role, onRegister }) => {
   });
 
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(""); // ✅ NEW
+  const [showPassword, setShowPassword] = useState(false);
 
   const isLocationRequired = role === "user" || role === "technician";
 
   const handleChange = (e) => {
+    setError(""); // clear error on typing
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleAddressChange = (e) => {
+    setError("");
     setForm({
       ...form,
       address: {
@@ -39,48 +44,62 @@ const RegisterForm = ({ role, onRegister }) => {
     });
   };
 
-  const getLocation = () => {
-    navigator.geolocation.getCurrentPosition((pos) => {
-      const coords = [
-        pos.coords.longitude,
-        pos.coords.latitude,
-      ];
-
-      setForm((prev) => ({
-        ...prev,
-        address: {
-          ...prev.address,
-          coordinates: coords,
-        },
-      }));
-    });
-  };
-
   const getEndpoint = () => {
-    if (role === "admin") return "/api/auth/register/admin";
-    if (role === "technician") return "/api/auth/register/technician";
-    return "/api/auth/register/user";
+    if (role === "admin") return "/auth/register/admin";
+    if (role === "technician") return "/auth/register/technician";
+    return "/auth/register/user";
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // ✅ VALIDATIONS
+    if (!form.firstName || !form.lastName || !form.email || !form.phone || !form.password) {
+      return setError("Please fill all required fields");
+    }
+
+    // ✅ Clean phone validation (no 0 or +91)
+    if (form.phone.startsWith("0") || form.phone.startsWith("+91")) {
+      return setError("Don't start with 0 and with +91");
+    }
+
+    if (!/^\d{10}$/.test(form.phone)) {
+      return setError("Enter valid phone number");
+    }
+
+    // ✅ Password validation (backend aligned)
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/.test(form.password)) {
+      return setError("Password does not meet requirements and must contain more then 6 letters");
+    }
+
+    if (isLocationRequired) {
+      const { street, city, state, pincode } = form.address;
+
+      if (!street || !city || !state || !pincode) {
+        return setError("Please fill complete address");
+      }
+
+      if (!/^\d{6}$/.test(pincode)) {
+        return setError("Enter valid 6-digit pincode");
+      }
+    }
+
     setLoading(true);
+    setError("");
 
     try {
       const payload = isLocationRequired
         ? form
-        : {
-            ...form,
-            address: undefined, // ❌ remove for admin
-          };
+        : { ...form, address: undefined };
 
-      const res = await axios.post(getEndpoint(), payload, {
-        withCredentials: true,
-      });
+      const res = await API.post(getEndpoint(), payload);
 
       onRegister(res.data.data);
     } catch (err) {
-      alert(err.response?.data?.message || "Register failed");
+      console.log("ERROR:", err.response?.data);
+
+      // ✅ Show backend error in UI
+      setError(err.response?.data?.message || "Registration failed");
     } finally {
       setLoading(false);
     }
@@ -88,7 +107,7 @@ const RegisterForm = ({ role, onRegister }) => {
 
   return (
     <div className="fixed inset-0 w-screen h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black">
-      
+
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -98,23 +117,55 @@ const RegisterForm = ({ role, onRegister }) => {
           Register as <span className="text-blue-400">{role}</span>
         </h2>
 
+        {/* ✅ ERROR UI */}
+        {error && (
+          <div className="bg-red-500/20 text-red-300 text-sm p-2 rounded mb-3 text-center">
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
 
-          {/* NAME */}
           <div className="flex gap-2">
             <input name="firstName" placeholder="First Name" onChange={handleChange} className="input" />
             <input name="lastName" placeholder="Last Name" onChange={handleChange} className="input" />
           </div>
 
-          {/* BASIC */}
           <input name="email" placeholder="Email" onChange={handleChange} className="input" />
-          <input name="phone" placeholder="Phone" onChange={handleChange} className="input" />
-          <input type="password" name="password" placeholder="Password" onChange={handleChange} className="input" />
+          {/* PHONE */}
+          <input
+            name="phone"
+            placeholder="Phone"
+            onChange={handleChange}
+            className="input"
+          />
 
-          {/* 📍 ADDRESS ONLY FOR USER + TECHNICIAN */}
+          {/* PASSWORD */}
+          {/* PASSWORD */}
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder="Password"
+              onChange={handleChange}
+              className="input w-full pr-10"
+            />
+
+            <span
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-3 cursor-pointer text-gray-300 hover:text-white transition"
+            >
+              {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+            </span>
+          </div>
+
+          {/* 🔥 PASSWORD HINT */}
+          <p className="text-xs text-gray-400">
+            Password must contain at least one uppercase letter, one lowercase letter, and one number
+          </p>
+
           {isLocationRequired && (
             <div className="border border-white/20 rounded-lg p-3 mt-1 flex flex-col gap-2">
-              
               <p className="text-xs text-gray-300">Service Location</p>
 
               <input name="street" placeholder="Street" onChange={handleAddressChange} className="input" />
@@ -124,14 +175,6 @@ const RegisterForm = ({ role, onRegister }) => {
                 <input name="state" placeholder="State" onChange={handleAddressChange} className="input" />
                 <input name="pincode" placeholder="Pincode" onChange={handleAddressChange} className="input" />
               </div>
-
-              <button
-                type="button"
-                onClick={getLocation}
-                className="text-xs bg-blue-500/20 text-blue-300 py-1 rounded-md hover:bg-blue-500/30 transition"
-              >
-                📍 Use Current Location
-              </button>
             </div>
           )}
 
@@ -143,7 +186,6 @@ const RegisterForm = ({ role, onRegister }) => {
           </button>
         </form>
 
-        {/* NAV */}
         <p className="text-gray-400 text-xs text-center mt-4">
           Already have an account?{" "}
           <span

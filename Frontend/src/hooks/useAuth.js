@@ -1,4 +1,5 @@
 import { useState } from "react";
+import API from "../services/api";
 
 const useAuth = () => {
   const [user, setUser] = useState(() => {
@@ -7,13 +8,12 @@ const useAuth = () => {
   });
 
   const login = (data) => {
-    // data = res.data.data
     localStorage.setItem("user", JSON.stringify(data.user));
     localStorage.setItem("token", data.accessToken);
 
     setUser(data.user);
 
-    return data; // ✅ useful for redirect
+    return data;
   };
 
   const logout = () => {
@@ -21,13 +21,23 @@ const useAuth = () => {
     setUser(null);
   };
 
+  const fetchCurrentUser = async () => {
+    try {
+      const res = await API.get("/auth/me");
+      setUser(res.data.data.user);
+    } catch (err) {
+      console.error("Failed to fetch user", err);
+    }
+  };
+
   return {
     user,
-    role: user?.role, // ✅ derive role
+    role: user?.role,
     token: localStorage.getItem("token"),
-    isAuthenticated: !!user, // ✅ important
+    isAuthenticated: !!user,
     login,
     logout,
+    fetchCurrentUser,
   };
 };
 

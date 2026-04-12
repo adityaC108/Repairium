@@ -1,11 +1,13 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import API from "../../services/api";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 
 const LoginForm = ({ onLogin }) => {
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // 👁️ NEW
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -17,10 +19,7 @@ const LoginForm = ({ onLogin }) => {
     setLoading(true);
 
     try {
-      const res = await axios.post("/api/auth/login", form, {
-        withCredentials: true,
-      });
-
+      const res = await API.post("/auth/login", form);
       onLogin(res.data.data);
     } catch (err) {
       alert(err.response?.data?.message || "Login failed");
@@ -31,7 +30,6 @@ const LoginForm = ({ onLogin }) => {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black px-4">
-      
       <motion.div
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
@@ -43,22 +41,31 @@ const LoginForm = ({ onLogin }) => {
         </h2>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-          
           <input
             name="email"
             type="email"
             placeholder="Enter your email"
             onChange={handleChange}
-            className="px-4 py-2 rounded-lg bg-white/20 text-white placeholder-gray-400 border border-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="input"
           />
 
-          <input
-            name="password"
-            type="password"
-            placeholder="Enter your password"
-            onChange={handleChange}
-            className="px-4 py-2 rounded-lg bg-white/20 text-white placeholder-gray-400 border border-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+          {/* PASSWORD WITH EYE */}
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder="Password"
+              onChange={handleChange}
+              className="input w-full pr-10"
+            />
+
+            <span
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-3 cursor-pointer text-gray-300 hover:text-white transition"
+            >
+              {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+            </span>
+          </div>
 
           <button
             type="submit"
@@ -69,7 +76,6 @@ const LoginForm = ({ onLogin }) => {
           </button>
         </form>
 
-        {/* ✅ FIXED REGISTER NAVIGATION */}
         <p className="text-gray-400 text-sm text-center mt-6">
           Don’t have an account?{" "}
           <span
