@@ -7,7 +7,7 @@ import { FiEye, FiEyeOff } from "react-icons/fi";
 const LoginForm = ({ onLogin }) => {
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false); // 👁️ NEW
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -20,8 +20,13 @@ const LoginForm = ({ onLogin }) => {
 
     try {
       const res = await API.post("/auth/login", form);
-      onLogin(res.data.data);
+
+      console.log("LOGIN RESPONSE:", res.data); // ✅ debug once
+
+      // ✅ flexible response handling
+      onLogin(res.data.data || res.data);
     } catch (err) {
+      console.error("Login error:", err.response?.data || err.message);
       alert(err.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
@@ -49,7 +54,6 @@ const LoginForm = ({ onLogin }) => {
             className="input"
           />
 
-          {/* PASSWORD WITH EYE */}
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}

@@ -18,7 +18,7 @@ const Register = () => {
         return "/technician/dashboard";
       case "user":
       default:
-        return "/user/dashboard";
+        return "/";
     }
   };
 

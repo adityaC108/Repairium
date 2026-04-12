@@ -5,22 +5,63 @@ import Home from "../pages/Home";
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
 
+import ServicesPage from "../pages/ServicesPage";
+import AboutPage from "../pages/AboutPage";
+import ContactPage from "../pages/ContactPage";
+
 // Dashboards
 import UserDashboard from "../pages/user/Dashboard";
 import TechnicianDashboard from "../pages/technician/Dashboard";
 import AdminDashboard from "../pages/admin/Dashboard";
 
-// Routes Protection
+// Protection
 import ProtectedRoute from "./ProtectedRoute";
 import RoleRoute from "./RoleRoute";
 
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* Public Routes */}
-      <Route path="/" element={<Home />} />
+
+      {/* ❌ Public Routes (only login/register allowed) */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+
+      {/* 🔒 PROTECTED ROUTES */}
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <Home />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/services"
+        element={
+          <ProtectedRoute>
+            <ServicesPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/about"
+        element={
+          <ProtectedRoute>
+            <AboutPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/contact"
+        element={
+          <ProtectedRoute>
+            <ContactPage />
+          </ProtectedRoute>
+        }
+      />
 
       {/* USER */}
       <Route

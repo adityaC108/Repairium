@@ -8,26 +8,19 @@ const Login = () => {
   const { login } = useAuth();
 
   const getDashboardByRole = (role) => {
-    switch (role) {
-      case "admin":
-        return "/admin/dashboard";
-      case "technician":
-        return "/technician/dashboard";
-      case "user":
-      default:
-        return "/user/dashboard";
-    }
+    if (role === "admin") return "/admin/dashboard";
+    if (role === "technician") return "/technician/dashboard";
+    return "/"; // 👈 user goes to home
   };
 
   const handleLogin = (data) => {
     login(data);
 
-    // ✅ improved role detection
-    const role = data?.role || data?.user?.role;
+    const role = data?.user?.role || data?.role || "user";
 
     const redirectPath = getDashboardByRole(role);
 
-    navigate(redirectPath);
+    navigate(redirectPath, { replace: true }); // ✅ smoother navigation
   };
 
   return (
