@@ -134,6 +134,7 @@ const notifyNearbyTechnicians = async (booking, appliance) => {
     // Find technicians whose service area covers the booking's city/state/pincode
     const nearbyTechnicians = await Technician.find({
       isActive: true,
+      isOnline: true,
       verificationStatus: 'verified',
       serviceAreas: {
         $elemMatch: {

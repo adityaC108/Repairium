@@ -303,7 +303,7 @@ export const authenticateTechnician = async (req, res, next) => {
       });
     }
     
-    const technician = await Technician.findById(decoded.userId);
+const technician = await Technician.findById(decoded.userId).select('+bankDetails');
     
     if (!technician || !technician.isActive) {
       return res.status(401).json({

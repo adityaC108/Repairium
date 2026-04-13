@@ -19,7 +19,7 @@ export const setRefreshTokenCookie = (res, refreshToken) => {
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite: 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     path: '/'
   });
@@ -28,10 +28,10 @@ export const setRefreshTokenCookie = (res, refreshToken) => {
 // Set Access Token Cookie
 export const setAccessTokenCookie = (res, accessToken) => {
   res.cookie('accessToken', accessToken, {
-    httpOnly: false, // Allow JavaScript access
+    httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 15 * 60 * 1000, // 15 minutes
+    sameSite: 'lax',
+    maxAge: 60 * 60 * 1000, // 1 hour
     path: '/'
   });
 };

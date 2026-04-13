@@ -1,6 +1,16 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 
+const documentSchema = {
+  url: String,
+  uploadedAt: { type: Date, default: Date.now },
+  status: { 
+    type: String, 
+    enum: ['pending_verification', 'verified', 'rejected'], 
+    default: 'pending_verification' 
+  }
+}
+
 const technicianSchema = new mongoose.Schema({
   firstName: {
     type: String,
@@ -95,11 +105,11 @@ const technicianSchema = new mongoose.Schema({
     isVerified: { type: Boolean, default: false }
   },
   documents: {
-    aadharCard: { type: String },
-    panCard: { type: String },
-    addressProof: { type: String },
-    policeVerification: { type: String }
-  },
+  aadharCard: documentSchema,
+  panCard: documentSchema,
+  addressProof: documentSchema,
+  policeVerification: documentSchema
+},
   isVerified: {
     type: Boolean,
     default: false

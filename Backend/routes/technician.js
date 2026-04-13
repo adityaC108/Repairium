@@ -3,18 +3,20 @@ import multer from 'multer';
 import {
   getTechnicianProfile,
   updateTechnicianProfile,
+  updateAvatar,
   getTechnicianBookings,
   updateBookingStatus,
   getTechnicianReviews,
   updateTechnicianAvailability,
   updateTechnicianLocation,
   uploadTechnicianDocuments,
+  updateBankDetails,
   getTechnicianEarnings,
   getTechnicianStatistics,
   respondToServiceRequest
 } from '../controllers/technicianController.js';
 import { authenticateTechnician } from '../middleware/auth.js';
-import { validateProfileUpdate, validateBookingStatus, validateAvailability, validateLocation } from '../middleware/validation.js';
+import { validateProfileUpdate, validateBookingStatus, validateBankDetails, validateLocation, validateOnlineStatus } from '../middleware/validation.js';
 
 const router = express.Router();
 
@@ -39,6 +41,7 @@ router.use(authenticateTechnician);
 // Profile Management Routes
 router.get('/profile', getTechnicianProfile);
 router.put('/profile', validateProfileUpdate, updateTechnicianProfile);
+router.put('/avatar', upload.single('avatar'), updateAvatar);
 
 // Booking Management Routes
 router.get('/bookings', getTechnicianBookings);
@@ -49,13 +52,16 @@ router.post('/bookings/:bookingId/respond', respondToServiceRequest);
 router.get('/reviews', getTechnicianReviews);
 
 // Availability Management Routes
-router.put('/availability', validateAvailability, updateTechnicianAvailability);
+router.put('/availability', validateOnlineStatus, updateTechnicianAvailability);
 
 // Location Management Routes
 router.put('/location', validateLocation, updateTechnicianLocation);
 
 // Document Management Routes
 router.post('/upload-document', upload.single('document'), uploadTechnicianDocuments);
+
+// Bank Details Routes
+router.put('/bank-details', validateBankDetails, updateBankDetails);
 
 // Earnings and Statistics Routes
 router.get('/earnings', getTechnicianEarnings);

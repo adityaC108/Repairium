@@ -184,12 +184,14 @@ export const maskEmail = (email) => {
 import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
 
-// Configure Cloudinary with environment variables
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET
-});
+// Function to configure Cloudinary (called when needed)
+const configureCloudinary = () => {
+    cloudinary.config({
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET
+    });
+};
 
 /**
  * Uploads a file to Cloudinary
@@ -199,8 +201,11 @@ cloudinary.config({
  * @param {number} quality - Optional quality for image compression (1-100)
  * @returns {Promise<Object>} - Cloudinary upload result
  */
-export const uploadToCloudinary = async (localFilePath, folder = 'meadow_go_repair', height, quality) => {
+export const uploadToCloudinary = async (localFilePath, folder = 'Repairium', height, quality) => {
     try {
+        // Configure Cloudinary before using it
+        configureCloudinary();
+        
         if (!localFilePath) {
             throw new Error('Local file path is required');
         }

@@ -30,39 +30,82 @@ export const getTechnicianProfile = async (req, res) => {
 // Update Technician Profile
 export const updateTechnicianProfile = async (req, res) => {
   try {
-    const technician = req.user;
+    const technicianId = req.user._id;
     const updates = req.body;
 
-    // Remove sensitive fields
-    delete updates.password;
-    delete updates.role;
-    delete updates.isVerified;
-    delete updates.verificationStatus;
-    delete updates.verificationRejectionReason;
-    delete updates.verificationToken;
-    delete updates._id;
-    delete updates.createdAt;
-    delete updates.updatedAt;
-    delete updates.__v;
+    // 1. CRITICAL: Protected Fields (Security)
+    // We prevent the user from updating these via this route
+    const protectedFields = [
+      'password', 'role', 'isVerified', 'verificationStatus', 
+      'email', 'earnings', 'rating', 'totalBookings', '_id'
+    ];
 
+    protectedFields.forEach(field => delete updates[field]);
+
+    // 2. Logic for Skills (If string is sent, convert to array)
+    if (updates.skills && typeof updates.skills === 'string') {
+      updates.skills = updates.skills.split(',').map(s => s.trim());
+    }
+
+    // 3. Perform the update
     const updatedTechnician = await Technician.findByIdAndUpdate(
-      technician._id,
-      updates,
+      technicianId,
+      { $set: updates }, // $set allows updating only the provided fields
       { new: true, runValidators: true }
     );
 
     res.status(200).json({
       success: true,
       message: 'Profile updated successfully',
+      data: { technician: updatedTechnician }
+    });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to update profile'
+    });
+  }
+};
+
+// Update Technician Avatar
+
+export const updateAvatar = async (req, res) => {
+  try {
+    const technician = req.user;
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please upload an image file'
+      });
+    }
+      
+
+    // 1. Upload to Cloudinary (using your existing utility)
+    const cloudinaryResponse = await uploadToCloudinary(req.file.path, 'technician_avatars');
+    const avatarUrl = cloudinaryResponse.secure_url;
+
+    // 2. Update the technician record
+    const updatedTechnician = await Technician.findByIdAndUpdate(
+      technician._id,
+      { avatar: avatarUrl },
+      { new: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Profile picture updated successfully',
       data: {
+        avatar: avatarUrl,
         technician: updatedTechnician
       }
     });
   } catch (error) {
-    console.error('Update technician profile error:', error);
+    console.error('Update avatar error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to update profile',
+      message: 'Failed to update profile picture',
       error: error.message
     });
   }
@@ -162,6 +205,13 @@ export const updateBookingStatus = async (req, res) => {
     } else if (status === 'completed') {
       booking.endTime = new Date();
       booking.completedAt = new Date();
+
+      // UPDATE TECHNICIAN STATS
+      const Technician = await import('../models/Technician.js').then(m => m.default);
+      await Technician.findByIdAndUpdate(technician._id, {
+        $inc: { completedBookings: 1 }
+        // Note: totalBookings should have been incremented when the booking was first created
+      });
     }
 
     await booking.save();
@@ -237,20 +287,28 @@ export const getTechnicianReviews = async (req, res) => {
 // Update Technician Availability
 export const updateTechnicianAvailability = async (req, res) => {
   try {
-    const technician = req.user;
-    const { availability } = req.body;
+    // 1. Get ID from the authenticated user object
+    const technicianId = req.user._id; 
+    
+    // 2. Expect 'isOnline' from the body instead of 'availability'
+    const { isOnline } = req.body;
 
+    // 3. Update isOnline AND refresh lastActive timestamp
     const updatedTechnician = await Technician.findByIdAndUpdate(
-      technician._id,
-      { availability },
+      technicianId,
+      { 
+        isOnline,
+        lastActive: Date.now() // Track when they last toggled status
+      },
       { new: true, runValidators: true }
     );
 
     res.status(200).json({
       success: true,
-      message: 'Availability updated successfully',
+      message: `You are now ${isOnline ? 'Online' : 'Offline'}`,
       data: {
-        availability: updatedTechnician.availability
+        isOnline: updatedTechnician.isOnline,
+        lastActive: updatedTechnician.lastActive
       }
     });
   } catch (error) {
@@ -277,23 +335,40 @@ export const updateTechnicianLocation = async (req, res) => {
       });
     }
 
+    // Prepare the service area object based on your Schema
+    const newServiceArea = {
+      city: address.city,
+      state: address.state,
+      pincode: address.pincode,
+      serviceRadius: address.serviceRadius || 10,
+      coordinates: {
+        type: 'Point',
+        coordinates: [coordinates.lng, coordinates.lat] // GeoJSON: [lng, lat]
+      }
+    };
+
     const updatedTechnician = await Technician.findByIdAndUpdate(
       technician._id,
       {
+        // 1. Update the live GPS point
         currentLocation: {
           type: 'Point',
           coordinates: [coordinates.lng, coordinates.lat]
         },
+        // 2. Overwrite the serviceAreas array with the new zone 
+        // (Or use $push if you want to support multiple cities)
+        serviceAreas: [newServiceArea], 
         lastLocationUpdate: new Date()
       },
-      { new: true }
+      { new: true, runValidators: true }
     );
 
     res.status(200).json({
       success: true,
-      message: 'Location updated successfully',
+      message: 'Location and Service Area updated successfully',
       data: {
-        location: updatedTechnician.currentLocation
+        currentLocation: updatedTechnician.currentLocation,
+        serviceAreas: updatedTechnician.serviceAreas
       }
     });
   } catch (error) {
@@ -320,7 +395,8 @@ export const uploadTechnicianDocuments = async (req, res) => {
     }
 
     // Upload to cloud storage
-    const documentUrl = await uploadToCloudinary(req.file.path);
+    const cloudinaryResponse = await uploadToCloudinary(req.file.path);
+    const documentUrl = cloudinaryResponse.secure_url;
 
     // Update technician documents
     const updateData = {};
@@ -364,6 +440,41 @@ export const uploadTechnicianDocuments = async (req, res) => {
       message: 'Failed to upload document',
       error: error.message
     });
+  }
+};
+
+// Update Bank Details
+export const updateBankDetails = async (req, res) => {
+  try {
+    const technician = req.user;
+    
+    const { accountHolder, accountNumber, bankName, ifscCode } = req.body.bankDetails || {};
+
+    if (!accountNumber || !ifscCode) {
+       return res.status(400).json({ success: false, message: "Missing required bank fields" });
+    }
+
+    const updatedTechnician = await Technician.findByIdAndUpdate(
+      technician._id,
+      {
+        bankDetails: {
+          accountHolder,
+          accountNumber,
+          bankName,
+          ifscCode,
+          isVerified: false 
+        }
+      },
+      { new: true, runValidators: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Bank details updated and pending verification',
+      data: { technician: updatedTechnician }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -575,13 +686,15 @@ export const respondToServiceRequest = async (req, res) => {
 export default {
   getTechnicianProfile,
   updateTechnicianProfile,
+  updateAvatar,
   getTechnicianBookings,
   updateBookingStatus,
   getTechnicianReviews,
   updateTechnicianAvailability,
   updateTechnicianLocation,
   uploadTechnicianDocuments,
+  updateBankDetails,
   getTechnicianEarnings,
   getTechnicianStatistics,
-  respondToServiceRequest
+  respondToServiceRequest,
 };
