@@ -20,13 +20,8 @@ const LoginForm = ({ onLogin }) => {
 
     try {
       const res = await API.post("/auth/login", form);
-
-      console.log("LOGIN RESPONSE:", res.data); // ✅ debug once
-
-      // ✅ flexible response handling
       onLogin(res.data.data || res.data);
     } catch (err) {
-      console.error("Login error:", err.response?.data || err.message);
       alert(err.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
@@ -34,14 +29,20 @@ const LoginForm = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black px-4">
+    <div
+      className="min-h-screen flex items-center justify-center px-4"
+      style={{ background: "var(--hero-gradient)" }}
+    >
+      {/* Glow background */}
+      <div className="absolute w-72 h-72 bg-gray-500 blur-[220px] rounded-full bottom-20 left-10" />
+      <div className="absolute w-72 h-72 bg-slate-500 blur-[150px] rounded-full top-20 right-10" />
+
       <motion.div
-        initial={{ opacity: 0, y: 50 }}
+        initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-8 shadow-2xl"
+        className="relative w-full max-w-md glass rounded-2xl p-8 shadow-xl bg-slate-100"
       >
-        <h2 className="text-2xl font-bold text-white text-center mb-6">
+        <h2 className="text-2xl font-display font-bold text-center mb-6">
           Welcome Back 👋
         </h2>
 
@@ -51,40 +52,40 @@ const LoginForm = ({ onLogin }) => {
             type="email"
             placeholder="Enter your email"
             onChange={handleChange}
-            className="input"
+            className="bg-background border border-border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary"
           />
 
+          {/* Password */}
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
               name="password"
               placeholder="Password"
               onChange={handleChange}
-              className="input w-full pr-10"
+              className="w-full bg-background border border-border rounded-xl px-4 py-3 pr-10 outline-none focus:ring-2 focus:ring-primary"
             />
-
             <span
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-3 cursor-pointer text-gray-300 hover:text-white transition"
+              className="absolute right-3 top-4 cursor-pointer text-muted-foreground"
             >
-              {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+              {showPassword ? <FiEyeOff /> : <FiEye />}
             </span>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-2 rounded-lg font-medium hover:scale-[1.02] transition"
+            className="bg-primary text-primary-foreground py-3 rounded-xl font-semibold hover:shadow-glow transition"
           >
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
-        <p className="text-gray-400 text-sm text-center mt-6">
+        <p className="text-sm text-center mt-6 text-muted-foreground">
           Don’t have an account?{" "}
           <span
             onClick={() => navigate("/register")}
-            className="text-blue-400 cursor-pointer hover:underline"
+            className="text-primary cursor-pointer hover:underline"
           >
             Register
           </span>

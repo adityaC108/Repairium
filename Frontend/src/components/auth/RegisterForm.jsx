@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import API from "../../services/api";
-import { FiEye, FiEyeOff } from "react-icons/fi"; // 👁️ add this
+import { FiEye, FiEyeOff } from "react-icons/fi";
 
 const RegisterForm = ({ role, onRegister }) => {
   const navigate = useNavigate();
@@ -23,13 +23,13 @@ const RegisterForm = ({ role, onRegister }) => {
   });
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(""); // ✅ NEW
+  const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   const isLocationRequired = role === "user" || role === "technician";
 
   const handleChange = (e) => {
-    setError(""); // clear error on typing
+    setError("");
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
@@ -53,35 +53,8 @@ const RegisterForm = ({ role, onRegister }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // ✅ VALIDATIONS
     if (!form.firstName || !form.lastName || !form.email || !form.phone || !form.password) {
       return setError("Please fill all required fields");
-    }
-
-    // ✅ Clean phone validation (no 0 or +91)
-    if (form.phone.startsWith("0") || form.phone.startsWith("+91")) {
-      return setError("Don't start with 0 and with +91");
-    }
-
-    if (!/^\d{10}$/.test(form.phone)) {
-      return setError("Enter valid phone number");
-    }
-
-    // ✅ Password validation (backend aligned)
-    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/.test(form.password)) {
-      return setError("Password does not meet requirements and must contain more then 6 letters");
-    }
-
-    if (isLocationRequired) {
-      const { street, city, state, pincode } = form.address;
-
-      if (!street || !city || !state || !pincode) {
-        return setError("Please fill complete address");
-      }
-
-      if (!/^\d{6}$/.test(pincode)) {
-        return setError("Enter valid 6-digit pincode");
-      }
     }
 
     setLoading(true);
@@ -93,12 +66,8 @@ const RegisterForm = ({ role, onRegister }) => {
         : { ...form, address: undefined };
 
       const res = await API.post(getEndpoint(), payload);
-
       onRegister(res.data.data);
     } catch (err) {
-      console.log("ERROR:", err.response?.data);
-
-      // ✅ Show backend error in UI
       setError(err.response?.data?.message || "Registration failed");
     } finally {
       setLoading(false);
@@ -106,91 +75,136 @@ const RegisterForm = ({ role, onRegister }) => {
   };
 
   return (
-    <div className="fixed inset-0 w-screen h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+    <div
+      className="min-h-screen flex items-center justify-center px-4"
+      style={{ background: "var(--hero-gradient)" }}
+    >
+      {/* Glow */}
+      <div className="absolute w-72 h-72 bg-gray-500 blur-[220px] rounded-full bottom-20 left-10" />
+      <div className="absolute w-72 h-72 bg-slate-500 blur-[150px] rounded-full top-20 right-10" />
 
       <motion.div
-        initial={{ opacity: 0, y: 30 }}
+        initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 shadow-2xl"
+        className="relative w-full max-w-lg bg-slate-100 backdrop-blur-xl border border-gray-200 rounded-2xl p-8 shadow-xl"
       >
-        <h2 className="text-xl font-semibold text-white text-center mb-4">
-          Register as <span className="text-blue-400">{role}</span>
+        {/* Heading */}
+        <h2 className="text-2xl font-bold text-gray-900 text-center mb-6">
+          Register as <span className="text-primary">{role}</span>
         </h2>
 
-        {/* ✅ ERROR UI */}
+        {/* Error */}
         {error && (
-          <div className="bg-red-500/20 text-red-300 text-sm p-2 rounded mb-3 text-center">
+          <div className="bg-red-100 text-red-600 text-sm p-3 rounded-lg mb-4 text-center border border-red-200">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
-          <div className="flex gap-2">
-            <input name="firstName" placeholder="First Name" onChange={handleChange} className="input" />
-            <input name="lastName" placeholder="Last Name" onChange={handleChange} className="input" />
+          {/* Name */}
+          <div className="flex gap-3">
+            <input
+              name="firstName"
+              placeholder="First Name"
+              onChange={handleChange}
+              className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary focus:border-primary transition"
+            />
+            <input
+              name="lastName"
+              placeholder="Last Name"
+              onChange={handleChange}
+              className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary focus:border-primary transition"
+            />
           </div>
 
-          <input name="email" placeholder="Email" onChange={handleChange} className="input" />
-          {/* PHONE */}
+          {/* Email */}
+          <input
+            name="email"
+            placeholder="Email"
+            onChange={handleChange}
+            className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary focus:border-primary transition"
+          />
+
+          {/* Phone */}
           <input
             name="phone"
             placeholder="Phone"
             onChange={handleChange}
-            className="input"
+            className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary focus:border-primary transition"
           />
 
-          {/* PASSWORD */}
-          {/* PASSWORD */}
+          {/* Password */}
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
               name="password"
               placeholder="Password"
               onChange={handleChange}
-              className="input w-full pr-10"
+              className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 pr-10 outline-none focus:ring-2 focus:ring-primary focus:border-primary transition"
             />
-
             <span
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-3 cursor-pointer text-gray-300 hover:text-white transition"
+              className="absolute right-3 top-3 cursor-pointer text-gray-500 hover:text-gray-800"
             >
               {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
             </span>
           </div>
 
-          {/* 🔥 PASSWORD HINT */}
-          <p className="text-xs text-gray-400">
-            Password must contain at least one uppercase letter, one lowercase letter, and one number
+          <p className="text-xs text-gray-500">
+            Must include uppercase, lowercase & number
           </p>
 
+          {/* Address */}
           {isLocationRequired && (
-            <div className="border border-white/20 rounded-lg p-3 mt-1 flex flex-col gap-2">
-              <p className="text-xs text-gray-300">Service Location</p>
+            <div className="border border-gray-200 rounded-xl p-4 flex flex-col gap-3">
+              <p className="text-xs text-gray-500">Service Location</p>
 
-              <input name="street" placeholder="Street" onChange={handleAddressChange} className="input" />
-              <input name="city" placeholder="City" onChange={handleAddressChange} className="input" />
+              <input
+                name="street"
+                placeholder="Street"
+                onChange={handleAddressChange}
+                className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary focus:border-primary transition"
+              />
 
-              <div className="flex gap-2">
-                <input name="state" placeholder="State" onChange={handleAddressChange} className="input" />
-                <input name="pincode" placeholder="Pincode" onChange={handleAddressChange} className="input" />
+              <input
+                name="city"
+                placeholder="City"
+                onChange={handleAddressChange}
+                className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary focus:border-primary transition"
+              />
+
+              <div className="flex gap-3">
+                <input
+                  name="state"
+                  placeholder="State"
+                  onChange={handleAddressChange}
+                  className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary focus:border-primary transition"
+                />
+
+                <input
+                  name="pincode"
+                  placeholder="Pincode"
+                  onChange={handleAddressChange}
+                  className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary focus:border-primary transition"
+                />
               </div>
             </div>
           )}
-
+          {/* Button */}
           <button
             disabled={loading}
-            className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-2 rounded-lg mt-2"
+            className="bg-primary text-primary-foreground py-3 rounded-xl font-semibold hover:shadow-glow transition"
           >
             {loading ? "Creating..." : "Register"}
           </button>
         </form>
 
-        <p className="text-gray-400 text-xs text-center mt-4">
+        <p className="text-sm text-center mt-6 text-gray-500">
           Already have an account?{" "}
           <span
             onClick={() => navigate("/login")}
-            className="text-blue-400 cursor-pointer hover:underline"
+            className="text-black cursor-pointer hover:underline"
           >
             Login
           </span>
