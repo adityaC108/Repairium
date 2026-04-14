@@ -12,6 +12,7 @@ import {
 import TechnicianStats from '../../components/technician/TechnicianStats';
 import TechnicianProfile from '../../components/technician/TechnicianProfile';
 import Navbar from '../../components/layout/Navbar';
+import notificationService from '../../services/notificationService';
 import { AnimatePresence, motion } from 'framer-motion';
 
 const TechnicianDashboard = () => {
@@ -43,6 +44,15 @@ const TechnicianDashboard = () => {
         setLoading(true);
         const result = await technicianServices.getProfile();
         setData(result.data);
+        
+        // Initialize notification service when user data is loaded
+        if (result.data?.technician || result.data?.user) {
+          const user = result.data.technician || result.data.user;
+          notificationService.initialize(user);
+          
+          // Set up notification listeners
+          setupNotificationListeners();
+        }
       } catch (err) {
         setError(err.message || "Failed to load dashboard. Please login.");
       } finally {
@@ -51,6 +61,65 @@ const TechnicianDashboard = () => {
     };
     loadDashboardData();
   }, []);
+
+  // Setup notification listeners
+  const setupNotificationListeners = () => {
+    // Listen for new booking requests
+    notificationService.on('new_booking_request', (data) => {
+      console.log('New booking request received:', data);
+      // Show alert or update UI
+      if (data.booking.priority === 'urgent' || data.booking.serviceType === 'emergency') {
+        alert(`URGENT: New ${data.booking.serviceType} booking request in ${data.booking.serviceAddress.city}!`);
+      }
+    });
+
+    // Listen for booking assignment
+    notificationService.on('booking_assigned', (data) => {
+      console.log('Booking assigned:', data);
+      // Update status to busy
+      if (data.booking.technician === data?.technicianId) {
+        notificationService.updateTechnicianStatus('busy');
+      }
+    });
+
+    // Listen for payment notifications
+    notificationService.on('payment_received', (data) => {
+      console.log('Payment received:', data);
+      // Update earnings display
+      if (data.payment.technician === profile?._id) {
+        // Refresh stats to show new earnings
+        loadStats();
+      }
+    });
+
+    // Listen for review notifications
+    notificationService.on('new_review', (data) => {
+      console.log('New review received:', data);
+      // Update rating display
+      if (data.review.technician === profile?._id) {
+        // Refresh profile data to show new rating
+        window.location.reload();
+      }
+    });
+
+    // Listen for verification status updates
+    notificationService.on('verification_status_updated', (data) => {
+      console.log('Verification status updated:', data);
+      if (data.verificationStatus === 'verified') {
+        alert('Congratulations! Your profile has been verified.');
+        window.location.reload();
+      }
+    });
+
+    // Cleanup on unmount
+    return () => {
+      notificationService.off('new_booking_request');
+      notificationService.off('booking_assigned');
+      notificationService.off('payment_received');
+      notificationService.off('new_review');
+      notificationService.off('verification_status_updated');
+    };
+  };
 
   // Handle Online/Offline toggle
   const handleToggleStatus = async () => {
@@ -71,6 +140,7 @@ const TechnicianDashboard = () => {
   };
 
   if (loading) return <LoadingScreen />;
+  if (error) return console.log(error)
   if (error) return <ErrorScreen message={error} />;
 
   const profile = data?.technician || data?.user;
@@ -282,8 +352,8 @@ const TechnicianDashboard = () => {
             </>
           ) : (
             /* SETTINGS VIEW */
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-              <header className="mb-12 flex items-center justify-between">
+            <div className="animate-in fade-in slide-in-from-bottom-4 mt-10 duration-700">
+              <header className="flex items-center justify-between">
                 <button
                   onClick={() => setView('overview')}
                   className="flex items-center gap-4 text-[10px] font-black text-slate-400 hover:text-indigo-600 transition-all uppercase tracking-[0.3em] group"
