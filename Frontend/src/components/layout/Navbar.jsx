@@ -11,9 +11,12 @@ import {
   ChevronDown, 
   Settings,
   ShieldCheck,
-  BadgeCheck
+  BadgeCheck,
+  Bell
 } from "lucide-react";
 import useAuth from "../../hooks/useAuth";
+import NotificationDropdown from "../NotificationDropdown";
+import notificationService from "../../services/notificationService";
 
 const Navbar = () => {
   const { logout, isAuthenticated, user } = useAuth();
@@ -116,6 +119,13 @@ const Navbar = () => {
 
           {/* Action Area */}
           <div className="flex items-center gap-4">
+            {/* Notification Dropdown - Added to left of existing actions */}
+            {isAuthenticated && (
+              <div className="relative">
+                <NotificationDropdown />
+              </div>
+            )}
+            
             {isAuthenticated ? (
               <div className="relative" ref={dropdownRef}>
                 <button
