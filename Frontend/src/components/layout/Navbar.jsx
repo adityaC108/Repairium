@@ -1,14 +1,14 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  LayoutDashboard, 
-  LogOut, 
-  Menu, 
-  X, 
-  Wrench, 
-  User as UserIcon, 
-  ChevronDown, 
+import {
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  X,
+  Wrench,
+  User as UserIcon,
+  ChevronDown,
   Settings,
   ShieldCheck,
   BadgeCheck,
@@ -69,21 +69,20 @@ const Navbar = () => {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ${
-        scrolled
+      className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ${scrolled
           ? "py-3 bg-gray-100/90 backdrop-blur-md border-b"
           : "py-5 bg-transparent"
-      }`}
+        }`}
       style={{ borderColor: scrolled ? colors.border : "transparent" }}
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between">
-          
+
           {/* Logo Section */}
           <Link to="/" className="flex items-center gap-3 group no-underline">
-            <div 
-                className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:rotate-12 shadow-lg"
-                style={{ backgroundColor: colors.dark }}
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:rotate-12 shadow-lg"
+              style={{ backgroundColor: colors.dark }}
             >
               <Wrench className="text-white" size={20} />
             </div>
@@ -103,13 +102,12 @@ const Navbar = () => {
               <Link
                 key={link.path}
                 to={link.path}
-                className={`px-5 py-2 rounded-xl text-sm font-bold transition-all no-underline ${
-                  location.pathname === link.path
+                className={`px-5 py-2 rounded-xl text-sm font-bold transition-all no-underline ${location.pathname === link.path
                     ? "bg-white shadow-sm"
                     : "hover:text-slate-900"
-                }`}
-                style={{ 
-                    color: location.pathname === link.path ? colors.primary : colors.textMuted 
+                  }`}
+                style={{
+                  color: location.pathname === link.path ? colors.primary : colors.textMuted
                 }}
               >
                 {link.label}
@@ -125,7 +123,7 @@ const Navbar = () => {
                 <NotificationDropdown />
               </div>
             )}
-            
+
             {isAuthenticated ? (
               <div className="relative" ref={dropdownRef}>
                 <button
@@ -135,10 +133,10 @@ const Navbar = () => {
                 >
                   <div className="flex flex-col items-end hidden lg:flex">
                     <span className="text-xs font-black flex items-center gap-1" style={{ color: colors.dark }}>
-                        <BadgeCheck size={16} style={{ color: colors.primary }} />{user?.firstName}
+                      <BadgeCheck size={16} style={{ color: colors.primary }} />{user?.firstName}
                     </span>
                     <span className="text-[9px] font-bold uppercase tracking-tighter" style={{ color: colors.primary }}>
-                        {user?.role}
+                      {user?.role}
                     </span>
                   </div>
                   <div className="w-9 h-9 rounded-xl bg-slate-100 overflow-hidden flex items-center justify-center border">
@@ -159,14 +157,14 @@ const Navbar = () => {
                       className="absolute right-0 mt-3 w-56 bg-white border rounded-[2rem] shadow-2xl p-2"
                       style={{ borderColor: colors.border }}
                     >
-                      <DropdownItem 
+                      <DropdownItem
                         onClick={() => { navigate(dashboardPath); setDropdownOpen(false); }}
                         icon={<LayoutDashboard size={18} />}
                         label="Dashboard"
                         color={colors.textMain}
                       />
-                      <DropdownItem 
-                        onClick={() => { navigate(dashboardPath); setDropdownOpen(false); }}
+                      <DropdownItem
+                        onClick={() => { navigate("/users/profile"); setDropdownOpen(false); }}
                         icon={<Settings size={18} />}
                         label="Profile Settings"
                         color={colors.textMain}
@@ -220,10 +218,10 @@ const Navbar = () => {
             className="fixed inset-y-0 right-0 w-full max-w-xs bg-white shadow-2xl z-[150] p-8 flex flex-col"
           >
             <div className="flex justify-between items-center mb-10">
-               <span className="font-black text-xl">MENU</span>
-               <button onClick={() => setMobileOpen(false)} className="p-2 bg-slate-100 rounded-full"><X size={20}/></button>
+              <span className="font-black text-xl">MENU</span>
+              <button onClick={() => setMobileOpen(false)} className="p-2 bg-slate-100 rounded-full"><X size={20} /></button>
             </div>
-            
+
             <nav className="flex flex-col gap-4">
               {NAV_LINKS.map((link) => (
                 <Link
@@ -240,19 +238,19 @@ const Navbar = () => {
 
             <div className="mt-auto pt-10 border-t space-y-4">
               {isAuthenticated ? (
-                <button 
-                  onClick={() => {navigate(dashboardPath); setMobileOpen(false);}}
+                <button
+                  onClick={() => { navigate(dashboardPath); setMobileOpen(false); }}
                   className="w-full py-4 rounded-2xl font-black text-white"
                   style={{ backgroundColor: colors.dark }}
                 >
                   GO TO DASHBOARD
                 </button>
               ) : (
-                <Link 
-                   to="/login" 
-                   onClick={() => setMobileOpen(false)}
-                   className="block w-full py-4 rounded-2xl font-black text-white text-center no-underline"
-                   style={{ backgroundColor: colors.primary }}
+                <Link
+                  to="/login"
+                  onClick={() => setMobileOpen(false)}
+                  className="block w-full py-4 rounded-2xl font-black text-white text-center no-underline"
+                  style={{ backgroundColor: colors.primary }}
                 >
                   GET STARTED
                 </Link>

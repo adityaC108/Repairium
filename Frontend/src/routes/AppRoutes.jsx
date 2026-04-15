@@ -19,6 +19,7 @@ import BookingPage from "../pages/BookingPage";
 // Protection
 import ProtectedRoute from "./ProtectedRoute";
 import RoleRoute from "./RoleRoute";
+import Profile from "../pages/user/Profile";
 
 const AppRoutes = () => {
   return (
@@ -43,6 +44,17 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <ServicesPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/users/profile"
+        element={
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={["user"]}>
+              <Profile />
+            </RoleRoute>
           </ProtectedRoute>
         }
       />
