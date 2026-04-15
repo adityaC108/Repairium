@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import API from "../services/api";
 
 const BookingPage = () => {
@@ -8,6 +8,7 @@ const BookingPage = () => {
   const [appliance, setAppliance] = useState(null);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState("");
+  const navigate = useNavigate();
 
   const [form, setForm] = useState({
     serviceType: "regular",
@@ -116,6 +117,10 @@ const BookingPage = () => {
       console.log("BOOKING SUCCESS 👉", res.data);
 
       showToast("Booking Created Successfully 🎉");
+
+      setTimeout(() => {
+        navigate(`/payment/${res.data.data.booking._id}`);
+      }, 1000);
 
     } catch (err) {
       console.log("FULL ERROR 👉", err.response?.data);
