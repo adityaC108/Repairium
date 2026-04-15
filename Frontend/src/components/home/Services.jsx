@@ -1,25 +1,51 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
-import API from "../../services/api"; // make sure path correct
+import {
+  Snowflake,
+  Tv,
+  WashingMachine,
+  Refrigerator,
+  Microwave,
+  Fan,
+  ArrowRight
+} from "lucide-react";
+
+const services = [
+  {
+    title: "AC Repair",
+    icon: Snowflake,
+    desc: "Cooling issues, gas refill & maintenance"
+  },
+  {
+    title: "Washing Machine",
+    icon: WashingMachine,
+    desc: "Drum, motor & drainage fixes"
+  },
+  {
+    title: "Refrigerator",
+    icon: Refrigerator,
+    desc: "Compressor, cooling & leakage repair"
+  },
+  {
+    title: "TV Repair",
+    icon: Tv,
+    desc: "Display, sound & panel issues"
+  },
+  {
+    title: "Microwave",
+    icon: Microwave,
+    desc: "Heating, wiring & control panel repair"
+  },
+  {
+    title: "Fan Repair",
+    icon: Fan,
+    desc: "Motor, speed & noise issues"
+  }
+];
 
 const Services = () => {
   const navigate = useNavigate();
-  const [services, setServices] = useState([]);
-
-  useEffect(() => {
-    const fetchAppliances = async () => {
-      try {
-        const res = await API.get("/appliances?limit=4"); // only 4 for preview
-        setServices(res.data.data.data); // pagination structure
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    fetchAppliances();
-  }, []);
 
   return (
     <section className="py-24 lg:py-32 bg-background relative">
@@ -36,35 +62,49 @@ const Services = () => {
         </div>
 
         {/* Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {services.map((s, i) => (
-            <motion.div
-              key={s._id}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              className="bg-slate-100 rounded-2xl p-7 group cursor-pointer hover:scale-[1.03] transition"
-            >
-              <h3 className="text-lg font-bold mb-2">
-                {s.name}
-              </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {services.map((s, i) => {
+            const Icon = s.icon;
 
-              <p className="text-sm text-gray-600 mb-4">
-                {s.description || "Expert repair service"}
-              </p>
+            return (
+              <motion.div
+                key={s.title}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                onClick={() => navigate("/services")}
+                className="bg-slate-100 rounded-2xl p-6 group cursor-pointer hover:shadow-lg hover:scale-[1.03] transition"
+              >
+                {/* Icon */}
+                <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-gray-500 text-white mb-4 group-hover:bg-primary transition">
+                  <Icon size={22} />
+                </div>
 
-              <p className="text-primary font-semibold">
-                ₹{s.basePrice + s.serviceCharge}
-              </p>
-            </motion.div>
-          ))}
+                {/* Title */}
+                <h3 className="text-lg font-bold mb-2 group-hover:text-primary transition">
+                  {s.title}
+                </h3>
+
+                {/* Description */}
+                <p className="text-sm text-gray-600 mb-3">
+                  {s.desc}
+                </p>
+
+                {/* CTA */}
+                <span className="text-sm text-primary  group-hover:opacity-100 transition">
+                  Explore →
+                </span>
+              </motion.div>
+            );
+          })}
         </div>
 
         {/* Button */}
         <div className="text-center mt-14">
           <button
             onClick={() => navigate("/services")}
-            className="flex items-center gap-2 mx-auto bg-black text-white px-6 py-3 rounded-xl"
+            className="flex items-center gap-2 mx-auto bg-gradient-to-r from-white/80 to-slate-400 
+                       text-black font-semibold px-6 py-3 rounded-xl hover:scale-105 transition"
           >
             View All Services <ArrowRight size={16} />
           </button>

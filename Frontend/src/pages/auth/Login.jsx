@@ -14,13 +14,6 @@ const Login = () => {
   };
 
   const handleLogin = (data) => {
-    // 🔥 DEBUG LOGS
-    console.log("FULL LOGIN RESPONSE 👉", data);
-    console.log("USER 👉", data?.user);
-    console.log("ROLE 👉", data?.user?.role || data?.role);
-
-    // Clean formatted view
-    console.log("FORMATTED 👉", JSON.stringify(data, null, 2));
 
     // Save login
     login(data);

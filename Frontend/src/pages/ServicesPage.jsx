@@ -25,8 +25,6 @@ const ServicesPage = () => {
 
         const data = res.data.data.data;
 
-        console.log("DATA 👉", data);
-
         setServices(data);
         setFiltered(data);
 
