@@ -26,6 +26,7 @@ const Register = () => {
     login(data);
 
     // ✅ FIX: safer role detection (backend sends both)
+    
     const userRole = data?.role || data?.user?.role;
 
     const redirectPath = getDashboardByRole(userRole);

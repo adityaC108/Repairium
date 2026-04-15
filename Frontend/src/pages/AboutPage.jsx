@@ -6,16 +6,11 @@ import Footer from "../components/home/Footer";
 const AboutPage = () => {
   return (
     <div className="min-h-screen">
-      {/* Navbar */}
-      <Navbar />
-
       {/* Content */}
       <div className="pt-16">
         <AboutSection />
       </div>
 
-      {/* Footer */}
-      <Footer />
     </div>
   );
 };

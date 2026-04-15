@@ -4,6 +4,7 @@ import Technician from '../models/Technician.js';
 import Appliance from '../models/Appliance.js';
 import { sendEmail, sendPushNotification, sendTemplatedEmail } from '../middleware/notification.js';
 import { paginate, createPaginationResponse } from '../utils/helpers.js';
+import TechnicianNotificationService from '../services/technicianNotificationService.js';
 
 // ─────────────────────────────────────────────
 // CREATE BOOKING
@@ -76,9 +77,9 @@ export const createBooking = async (req, res) => {
 
     await newBooking.save();
 
-    // 5. Notify all nearby technicians (fire-and-forget; don't block response)
-    notifyNearbyTechnicians(newBooking, appliance).catch((err) =>
-      console.error('notifyNearbyTechnicians error:', err)
+    // 5. Notify all nearby technicians using the new service (fire-and-forget; don't block response)
+    TechnicianNotificationService.notifyNewBookingRequest(newBooking).catch((err) =>
+      console.error('TechnicianNotificationService error:', err)
     );
 
     return res.status(201).json({
@@ -134,6 +135,7 @@ const notifyNearbyTechnicians = async (booking, appliance) => {
     // Find technicians whose service area covers the booking's city/state/pincode
     const nearbyTechnicians = await Technician.find({
       isActive: true,
+      isOnline: true,
       verificationStatus: 'verified',
       serviceAreas: {
         $elemMatch: {
@@ -263,17 +265,10 @@ export const acceptBooking = async (req, res) => {
       });
     }
 
-    // Record acceptance in technician's notifications
-    await Technician.findByIdAndUpdate(technician._id, {
-      $push: {
-        notifications: {
-          type: 'booking_accepted',
-          message: `You accepted booking ${updatedBooking.bookingId}`,
-          booking: bookingId,
-          createdAt: new Date(),
-        },
-      },
-    });
+    // Notify technician about booking assignment using the new service
+    TechnicianNotificationService.notifyBookingAssigned(updatedBooking, technician._id).catch((err) =>
+      console.error('TechnicianNotificationService notifyBookingAssigned error:', err)
+    );
 
     // Notify the user immediately with technician details
     const user = await User.findById(updatedBooking.user);

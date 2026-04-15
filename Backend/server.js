@@ -29,8 +29,9 @@ const app = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
-    methods: ["GET", "POST"]
+    origin: ["http://localhost:5173", "http://localhost:3000"],
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
@@ -54,17 +55,95 @@ app.use(express.urlencoded({ extended: true }));
 // Make io accessible to routes
 app.set('io', io);
 
+// Make io globally accessible
+global.io = io;
+
 // Socket.io connection for real-time notifications
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
   
-  socket.on('join', (userId) => {
-    socket.join(userId);
-    console.log(`User ${userId} joined their room`);
+  // Join user to their personal room
+  socket.on('join', (userData) => {
+    if (userData && userData.userId && userData.userType) {
+      const roomName = `${userData.userType}_${userData.userId}`;
+      socket.join(roomName);
+      socket.join(userData.userId); // Also join generic room for compatibility
+      
+      // Join role-based rooms
+      socket.join(userData.userType); // e.g., 'technician', 'user', 'admin'
+      
+      console.log(`${userData.userType} ${userData.userId} joined room: ${roomName}`);
+      
+      // Update online status for technicians
+      if (userData.userType === 'technician') {
+        socket.broadcast.emit('technician_online', { technicianId: userData.userId });
+      }
+    }
   });
   
+  // Handle technician location updates
+  socket.on('update_location', (locationData) => {
+    if (locationData && locationData.technicianId) {
+      socket.broadcast.emit('technician_location_updated', {
+        technicianId: locationData.technicianId,
+        coordinates: locationData.coordinates,
+        timestamp: new Date()
+      });
+    }
+  });
+  
+  // Handle technician status updates
+  socket.on('update_technician_status', (statusData) => {
+    if (statusData && statusData.technicianId) {
+      socket.broadcast.emit('technician_status_updated', {
+        technicianId: statusData.technicianId,
+        status: statusData.status, // online/offline/busy
+        timestamp: new Date()
+      });
+    }
+  });
+  
+  // Handle booking status updates
+  socket.on('booking_status_update', (bookingData) => {
+    if (bookingData && bookingData.bookingId) {
+      // Send to specific rooms based on booking participants
+      if (bookingData.userId) {
+        io.to(`user_${bookingData.userId}`).emit('booking_updated', bookingData);
+      }
+      if (bookingData.technicianId) {
+        io.to(`technician_${bookingData.technicianId}`).emit('booking_updated', bookingData);
+      }
+      
+      // Also broadcast to all technicians for new booking requests
+      if (bookingData.status === 'pending') {
+        io.to('technician').emit('new_booking_request', bookingData);
+      }
+    }
+  });
+  
+  // Handle notification read status
+  socket.on('mark_notification_read', (notificationData) => {
+    if (notificationData && notificationData.notificationId) {
+      socket.broadcast.emit('notification_read', {
+        notificationId: notificationData.notificationId,
+        userId: notificationData.userId,
+        timestamp: new Date()
+      });
+    }
+  });
+  
+  // Handle disconnection
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
+    
+    // Broadcast technician offline status
+    // Note: In production, you'd want to track which socket belongs to which technician
+    socket.broadcast.emit('user_disconnected', { socketId: socket.id });
+  });
+  
+  // Error handling
+  socket.on('error', (error) => {
+    console.error('Socket error:', error);
   });
 });
 

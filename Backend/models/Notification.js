@@ -172,7 +172,7 @@ notificationSchema.methods.markAsRead = function() {
 notificationSchema.methods.sendViaHTTP = async function() {
   try {
     const axios = require('axios');
-    const notificationUrl = process.env.NOTIFICATION_BASE_URL || 'http://localhost:3000/api/notifications';
+    const notificationUrl = process.env.NOTIFICATION_BASE_URL || 'http://localhost:5173/api/notifications';
     
     const payload = {
       id: this._id,

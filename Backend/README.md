@@ -102,7 +102,7 @@ Backend/
    # Server Configuration
    PORT=5000
    NODE_ENV=development
-   FRONTEND_URL=http://localhost:3000
+   FRONTEND_URL=http://localhost:5173
 
    # Database Configuration
    MONGODB_URI=mongodb://localhost:27017/repairum

@@ -295,49 +295,27 @@ export const validatePayment = [
 
 // Profile update validation
 export const validateProfileUpdate = [
-  body('firstName')
-    .optional()
-    .trim()
-    .isLength({ min: 2, max: 50 })
-    .withMessage('First name must be between 2 and 50 characters')
-    .matches(/^[a-zA-Z\s]+$/)
-    .withMessage('First name can only contain letters and spaces'),
+  // Names
+  body('firstName').optional().trim().isLength({ min: 2 }).withMessage('First name too short'),
+  body('lastName').optional().trim().isLength({ min: 2 }).withMessage('Last name too short'),
+  
+  // Phone
+  body('phone').optional().matches(/^[6-9]\d{9}$/).withMessage('Invalid 10-digit phone'),
 
-  body('lastName')
-    .optional()
-    .trim()
-    .isLength({ min: 2, max: 50 })
-    .withMessage('Last name must be between 2 and 50 characters')
-    .matches(/^[a-zA-Z\s]+$/)
-    .withMessage('Last name can only contain letters and spaces'),
+  // Skills (Can be Array or String)
+  body('skills').optional().custom((value) => {
+    if (!Array.isArray(value) && typeof value !== 'string') {
+      throw new Error('Skills must be an array or a comma-separated string');
+    }
+    return true;
+  }),
 
-  body('phone')
-    .optional()
-    .matches(/^[6-9]\d{9}$/)
-    .withMessage('Please provide a valid 10-digit phone number starting with 6-9'),
+  // Experience
+  body('experience').optional().isInt({ min: 0, max: 50 }).withMessage('Experience must be 0-50 years'),
 
-  body('address.street')
-    .optional()
-    .trim()
-    .notEmpty()
-    .withMessage('Street address is required'),
-
-  body('address.city')
-    .optional()
-    .trim()
-    .notEmpty()
-    .withMessage('City is required'),
-
-  body('address.state')
-    .optional()
-    .trim()
-    .notEmpty()
-    .withMessage('State is required'),
-
-  body('address.pincode')
-    .optional()
-    .matches(/^\d{6}$/)
-    .withMessage('Please provide a valid 6-digit pincode'),
+  // Service Areas (If updating the whole array)
+  body('serviceAreas').optional().isArray().withMessage('Service areas must be an array'),
+  body('serviceAreas.*.pincode').optional().matches(/^\d{6}$/).withMessage('Pincode must be 6 digits'),
 
   handleValidationErrors
 ];
@@ -365,6 +343,30 @@ export const validateReview = [
     .trim()
     .isLength({ min: 10, max: 500 })
     .withMessage('Review must be between 10 and 500 characters'),
+
+  handleValidationErrors
+];
+
+export const validateBankDetails = [
+  body('bankDetails.accountHolder')
+    .trim()
+    .notEmpty().withMessage('Account holder name is required')
+    .isLength({ min: 3 }).withMessage('Name must be at least 3 characters long'),
+    
+  body('bankDetails.accountNumber')
+    .trim()
+    .notEmpty().withMessage('Account number is required')
+    .isNumeric().withMessage('Account number must contain only digits')
+    .isLength({ min: 9, max: 18 }).withMessage('Invalid account number length'),
+
+  body('bankDetails.ifscCode')
+    .trim()
+    .notEmpty().withMessage('IFSC code is required')
+    .matches(/^[A-Z]{4}0[A-Z0-9]{6}$/).withMessage('Invalid IFSC code format (e.g., SBIN0123456)'),
+
+  body('bankDetails.bankName')
+    .trim()
+    .notEmpty().withMessage('Bank name is required'),
 
   handleValidationErrors
 ];
@@ -399,6 +401,13 @@ export const validatePasswordChange = [
       return true;
     }),
 
+  handleValidationErrors
+];
+
+export const validateOnlineStatus = [
+  body('isOnline')
+    .isBoolean()
+    .withMessage('isOnline must be a boolean value'),
   handleValidationErrors
 ];
 
