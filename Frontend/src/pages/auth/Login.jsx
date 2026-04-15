@@ -10,17 +10,25 @@ const Login = () => {
   const getDashboardByRole = (role) => {
     if (role === "admin") return "/admin/dashboard";
     if (role === "technician") return "/technician/dashboard";
-    return "/"; // 👈 user goes to home
+    return "/"; // user
   };
 
   const handleLogin = (data) => {
+    // 🔥 DEBUG LOGS
+    console.log("FULL LOGIN RESPONSE 👉", data);
+    console.log("USER 👉", data?.user);
+    console.log("ROLE 👉", data?.user?.role || data?.role);
+
+    // Clean formatted view
+    console.log("FORMATTED 👉", JSON.stringify(data, null, 2));
+
+    // Save login
     login(data);
 
     const role = data?.user?.role || data?.role || "user";
-
     const redirectPath = getDashboardByRole(role);
 
-    navigate(redirectPath, { replace: true }); // ✅ smoother navigation
+    navigate(redirectPath, { replace: true });
   };
 
   return (
