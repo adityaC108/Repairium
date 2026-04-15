@@ -8,16 +8,12 @@ const ContactPage = () => {
   return (
     <div className="min-h-screen flex flex-col">
       
-      {/* Navbar */}
-      <Navbar />
 
       {/* Main Content */}
       <main className="flex-1 pt-16">
         <Contact />
       </main>
 
-      {/* Footer */}
-      <Footer />
     </div>
   );
 };

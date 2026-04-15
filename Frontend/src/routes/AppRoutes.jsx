@@ -14,6 +14,8 @@ import UserDashboard from "../pages/user/Dashboard";
 import TechnicianDashboard from "../pages/technician/Dashboard";
 import AdminDashboard from "../pages/admin/Dashboard";
 
+import BookingPage from "../pages/BookingPage";
+
 // Protection
 import ProtectedRoute from "./ProtectedRoute";
 import RoleRoute from "./RoleRoute";
@@ -70,6 +72,20 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <RoleRoute allowedRoles={["user"]}>
               <UserDashboard />
+            </RoleRoute>
+          </ProtectedRoute>
+        }
+      />
+
+      {/*booking */}
+
+
+      <Route
+        path="/book/:id"
+        element={
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={["user"]}>
+              <BookingPage />
             </RoleRoute>
           </ProtectedRoute>
         }
