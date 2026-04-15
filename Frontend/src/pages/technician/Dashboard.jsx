@@ -140,7 +140,7 @@ const TechnicianDashboard = () => {
   };
 
   if (loading) return <LoadingScreen />;
-  if (error) return console.log(error)
+  // if (error) return console.log(error)
   if (error) return <ErrorScreen message={error} />;
 
   const profile = data?.technician || data?.user;
