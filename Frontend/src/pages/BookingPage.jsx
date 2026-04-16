@@ -21,13 +21,11 @@ const BookingPage = () => {
     preferredTime: ""
   });
 
-  // 🔥 Toast
   const showToast = (msg) => {
     setToast(msg);
     setTimeout(() => setToast(""), 3000);
   };
 
-  // 🔥 Fetch Appliance
   useEffect(() => {
     const fetchAppliance = async () => {
       try {
@@ -43,7 +41,6 @@ const BookingPage = () => {
     fetchAppliance();
   }, [id]);
 
-  // 🔥 Auto-fill Address
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
 
@@ -58,7 +55,6 @@ const BookingPage = () => {
     }
   }, []);
 
-  // 🔥 Handle Change
   const handleChange = (field, value) => {
     setForm((prev) => ({
       ...prev,
@@ -66,10 +62,8 @@ const BookingPage = () => {
     }));
   };
 
-  // 🔥 Submit Booking
   const handleSubmit = async () => {
     try {
-      // ✅ Validation
       if (!form.issueDescription || form.issueDescription.length < 10) {
         return showToast("Describe issue (min 10 chars) ❌");
       }
@@ -82,39 +76,33 @@ const BookingPage = () => {
         return showToast("Select date & time ❌");
       }
 
-      // 🔥 Get coordinates safely
-      const user = JSON.parse(localStorage.getItem("user"));
+      // 🔥 TIME VALIDATION (IMPORTANT)
+      const [hours] = form.preferredTime.split(":").map(Number);
+      if (hours < 8 || hours > 20) {
+        return showToast("Time must be between 8 AM and 8 PM ❌");
+      }
 
       const coords = [72.8777, 19.0760];
 
       const payload = {
         applianceId: id,
         serviceType: form.serviceType,
-
         issueDescription: form.issueDescription,
-
         serviceAddress: {
           street: form.street,
           city: form.city,
           state: form.state,
           pincode: form.pincode,
-
-          // ✅ FINAL CORRECT STRUCTURE
           coordinates: {
             type: "Point",
             coordinates: coords
           }
         },
-
         preferredDate: form.preferredDate,
         preferredTime: form.preferredTime
       };
 
-      console.log("FINAL PAYLOAD 👉", payload);
-
       const res = await API.post("/bookings/user/bookings", payload);
-
-      console.log("BOOKING SUCCESS 👉", res.data);
 
       showToast("Booking Created Successfully 🎉");
 
@@ -123,8 +111,6 @@ const BookingPage = () => {
       }, 1000);
 
     } catch (err) {
-      console.log("FULL ERROR 👉", err.response?.data);
-      console.log("ERROR DETAILS 👉", err.response?.data?.errors);
       showToast(err.response?.data?.message || "Booking Failed ❌");
     }
   };
@@ -134,7 +120,7 @@ const BookingPage = () => {
   return (
     <div className="max-w-4xl mx-auto mt-20 p-6">
 
-      {/* 🔥 Toast */}
+      {/* Toast */}
       {toast && (
         <div className="fixed top-5 right-5 bg-black text-white px-5 py-3 rounded-xl shadow-lg">
           {toast}
@@ -155,7 +141,6 @@ const BookingPage = () => {
       {/* Form */}
       <div className="grid gap-4">
 
-        {/* Service Type */}
         <select
           value={form.serviceType}
           onChange={(e) => handleChange("serviceType", e.target.value)}
@@ -165,7 +150,6 @@ const BookingPage = () => {
           <option value="emergency">Emergency Service ⚡</option>
         </select>
 
-        {/* Issue */}
         <textarea
           placeholder="Describe your issue..."
           value={form.issueDescription}
@@ -173,7 +157,6 @@ const BookingPage = () => {
           className="border p-3 rounded"
         />
 
-        {/* Address */}
         <input
           value={form.street}
           onChange={(e) => handleChange("street", e.target.value)}
@@ -202,20 +185,55 @@ const BookingPage = () => {
           className="border p-2 rounded"
         />
 
-        {/* Date + Time */}
-        <input
-          type="date"
-          value={form.preferredDate}
-          onChange={(e) => handleChange("preferredDate", e.target.value)}
-          className="border p-2 rounded"
-        />
+        {/* DATE */}
+        <div className="flex flex-col gap-1">
+          <label className="text-sm font-medium text-gray-600">
+            Select Service Date
+          </label>
 
-        <input
-          type="time"
-          value={form.preferredTime}
-          onChange={(e) => handleChange("preferredTime", e.target.value)}
-          className="border p-2 rounded"
-        />
+          <input
+            type="date"
+            value={form.preferredDate}
+            min={new Date().toISOString().split("T")[0]}
+            onChange={(e) => handleChange("preferredDate", e.target.value)}
+            className="border border-gray-200 bg-white px-4 py-2 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
+
+        {/* TIME */}
+     <div className="flex flex-col gap-1">
+  <label className="text-sm font-medium text-gray-600">
+    Select Time (8 AM – 8 PM)
+  </label>
+
+  <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+    {Array.from({ length: 13 }, (_, i) => {
+      const hour = 8 + i;
+      const suffix = hour >= 12 ? "PM" : "AM";
+      const display = hour > 12 ? hour - 12 : hour;
+
+      const timeLabel = `${display}:00 ${suffix}`;
+      const timeValue = `${hour.toString().padStart(2, "0")}:00`;
+
+      return (
+        <button
+          key={timeValue}
+          type="button"
+          onClick={() => handleChange("preferredTime", timeValue)}
+          className={`flex-shrink-0 px-4 py-2 rounded-full text-sm border transition
+            ${
+              form.preferredTime === timeValue
+                ? "bg-indigo-600 text-white shadow"
+                : "bg-white hover:bg-indigo-50"
+            }
+          `}
+        >
+          {timeLabel}
+        </button>
+      );
+    })}
+  </div>
+</div>
 
         {/* Submit */}
         <button

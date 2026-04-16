@@ -62,9 +62,9 @@ const ServicesPage = () => {
     <div className="min-h-screen flex flex-col bg-background">
 
       {/* Hero */}
-      <section className="pt-28 pb-10 text-center">
+      <section className="pt-30 pb-12 text-center">
         <h1 className="text-4xl font-bold">All Services</h1>
-        <p className="text-gray-500">Filter by brand & category</p>
+        <p className="text-gray-500 mt-2">Filter by brand & category</p>
       </section>
 
       {/* 🔥 Filters */}
@@ -74,7 +74,7 @@ const ServicesPage = () => {
         <select
           value={selectedBrand}
           onChange={(e) => setSelectedBrand(e.target.value)}
-          className="px-4 py-2 rounded-lg border"
+          className="px-4 py-2 rounded-lg border-2 hover:bg-slate-100 font-semibold"
         >
           <option value="">All Brands</option>
           {brands.map((b) => (
@@ -86,7 +86,7 @@ const ServicesPage = () => {
         <select
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
-          className="px-4 py-2 rounded-lg border"
+          className="px-4 py-2 rounded-lg border-2 font-semibold hover:bg-slate-100"
         >
           <option value="">All Categories</option>
           {categories.map((c) => (

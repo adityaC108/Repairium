@@ -18,6 +18,8 @@ import UserDashboard from "../pages/user/Dashboard";
 import TechnicianDashboard from "../pages/technician/Dashboard";
 import AdminDashboard from "../pages/admin/Dashboard";
 
+import MyBookings from "../pages/user/MyBookings";
+
 import Profile from "../pages/user/Profile";
 
 // Protection
@@ -88,6 +90,18 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <RoleRoute allowedRoles={["user"]}>
               <UserDashboard />
+            </RoleRoute>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* USER BOOKINGS */}
+      <Route
+        path="/user/bookings"
+        element={
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={["user"]}>
+              <MyBookings />
             </RoleRoute>
           </ProtectedRoute>
         }
