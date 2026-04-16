@@ -22,7 +22,6 @@ const Profile = () => {
 
         const u = res.data.data.user;
 
-        console.log("PROFILE 👉", u);
 
         setUser(u);
 
@@ -65,7 +64,6 @@ const Profile = () => {
 
       const res = await API.put("/users/profile", payload);
 
-      console.log("UPDATED USER 👉", res.data.data.user);
 
       // ✅ update localStorage also
       localStorage.setItem("user", JSON.stringify(res.data.data.user));

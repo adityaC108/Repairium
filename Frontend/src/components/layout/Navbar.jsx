@@ -164,6 +164,7 @@ const Navbar = () => {
                         color={colors.textMain}
                       />
                       <DropdownItem
+                        onClick={() => { navigate("/user/profile"); setDropdownOpen(false); }}
                         onClick={() => { navigate(dashboardPath); setDropdownOpen(false); }}
                         icon={<Settings size={18} />}
                         label="Profile Settings"
