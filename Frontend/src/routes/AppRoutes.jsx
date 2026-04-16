@@ -167,6 +167,42 @@ const AppRoutes = () => {
         }
       />
 
+      {/* ✅ ADMIN USERS */}
+      <Route
+        path="/admin/users"
+        element={
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={["admin"]}>
+              <Users />
+            </RoleRoute>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* ✅ ADMIN TECHNICIANS */}
+      <Route
+        path="/admin/technicians"
+        element={
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={["admin"]}>
+              <Technicians />
+            </RoleRoute>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* ✅ ADMIN BOOKINGS */}
+      <Route
+        path="/admin/bookings"
+        element={
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={["admin"]}>
+              <Bookings />
+            </RoleRoute>
+          </ProtectedRoute>
+        }
+      />
+
       {/* 404 */}
       <Route
         path="*"
