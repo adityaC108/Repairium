@@ -18,6 +18,10 @@ import UserDashboard from "../pages/user/Dashboard";
 import TechnicianDashboard from "../pages/technician/Dashboard";
 import AdminDashboard from "../pages/admin/Dashboard";
 
+// ✅ ADD THESE HERE
+import Users from "../pages/admin/Users";
+import Technicians from "../pages/admin/Technicians";
+import Bookings from "../pages/admin/Bookings";
 import MyBookings from "../pages/user/MyBookings";
 
 import Profile from "../pages/user/Profile";
