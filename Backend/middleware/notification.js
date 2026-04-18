@@ -1,5 +1,5 @@
-import Notification from '../models/Notification.js';
-import nodemailer from 'nodemailer';
+import Notification from "../models/Notification.js";
+import nodemailer from "nodemailer";
 
 // Middleware to send notifications after certain actions
 export const sendNotification = async (data) => {
@@ -7,57 +7,61 @@ export const sendNotification = async (data) => {
     const notification = await Notification.createNotification(data);
     return notification;
   } catch (error) {
-    console.error('Failed to send notification:', error);
+    console.error("Failed to send notification:", error);
     throw error;
   }
 };
 
 // Send booking notifications
-export const sendBookingNotification = async (booking, type, additionalData = {}) => {
+export const sendBookingNotification = async (
+  booking,
+  type,
+  additionalData = {},
+) => {
   const notifications = [];
-  
+
   try {
     // User notification
     const userNotificationData = {
-      title: getBookingNotificationTitle(type, 'user'),
-      message: getBookingNotificationMessage(type, 'user', booking),
-      type: 'booking',
+      title: getBookingNotificationTitle(type, "user"),
+      message: getBookingNotificationMessage(type, "user", booking),
+      type: "booking",
       recipient: booking.user,
-      recipientModel: 'User',
+      recipientModel: "User",
       relatedEntity: {
-        entityType: 'Booking',
-        entityId: booking._id
+        entityType: "Booking",
+        entityId: booking._id,
       },
-      channels: ['in_app', 'email'],
+      channels: ["in_app", "email"],
       actionUrl: `/bookings/${booking._id}`,
-      actionText: 'View Booking',
-      metadata: { bookingId: booking.bookingId, ...additionalData }
+      actionText: "View Booking",
+      metadata: { bookingId: booking.bookingId, ...additionalData },
     };
-    
+
     notifications.push(await sendNotification(userNotificationData));
-    
+
     // Technician notification
     const technicianNotificationData = {
-      title: getBookingNotificationTitle(type, 'technician'),
-      message: getBookingNotificationMessage(type, 'technician', booking),
-      type: 'booking',
+      title: getBookingNotificationTitle(type, "technician"),
+      message: getBookingNotificationMessage(type, "technician", booking),
+      type: "booking",
       recipient: booking.technician,
-      recipientModel: 'Technician',
+      recipientModel: "Technician",
       relatedEntity: {
-        entityType: 'Booking',
-        entityId: booking._id
+        entityType: "Booking",
+        entityId: booking._id,
       },
-      channels: ['in_app', 'email', 'sms'],
+      channels: ["in_app", "email", "sms"],
       actionUrl: `/bookings/${booking._id}`,
-      actionText: 'View Booking',
-      metadata: { bookingId: booking.bookingId, ...additionalData }
+      actionText: "View Booking",
+      metadata: { bookingId: booking.bookingId, ...additionalData },
     };
-    
+
     notifications.push(await sendNotification(technicianNotificationData));
-    
+
     return notifications;
   } catch (error) {
-    console.error('Failed to send booking notifications:', error);
+    console.error("Failed to send booking notifications:", error);
     throw error;
   }
 };
@@ -65,51 +69,54 @@ export const sendBookingNotification = async (booking, type, additionalData = {}
 // Send payment notifications
 export const sendPaymentNotification = async (payment, type) => {
   const notifications = [];
-  
+
   try {
     // User notification
     const userNotificationData = {
-      title: getPaymentNotificationTitle(type, 'user'),
-      message: getPaymentNotificationMessage(type, 'user', payment),
-      type: 'payment',
+      title: getPaymentNotificationTitle(type, "user"),
+      message: getPaymentNotificationMessage(type, "user", payment),
+      type: "payment",
       recipient: payment.user,
-      recipientModel: 'User',
+      recipientModel: "User",
       relatedEntity: {
-        entityType: 'Payment',
-        entityId: payment._id
+        entityType: "Payment",
+        entityId: payment._id,
       },
-      channels: ['in_app', 'email'],
+      channels: ["in_app", "email"],
       actionUrl: `/payments/${payment._id}`,
-      actionText: 'View Payment',
-      metadata: { paymentId: payment.paymentId }
+      actionText: "View Payment",
+      metadata: { paymentId: payment.paymentId },
     };
-    
+
     notifications.push(await sendNotification(userNotificationData));
-    
+
     // Technician notification
-    if (payment.status === 'paid') {
+    if (payment.status === "paid") {
       const technicianNotificationData = {
-        title: getPaymentNotificationTitle(type, 'technician'),
-        message: getPaymentNotificationMessage(type, 'technician', payment),
-        type: 'payment',
+        title: getPaymentNotificationTitle(type, "technician"),
+        message: getPaymentNotificationMessage(type, "technician", payment),
+        type: "payment",
         recipient: payment.technician,
-        recipientModel: 'Technician',
+        recipientModel: "Technician",
         relatedEntity: {
-          entityType: 'Payment',
-          entityId: payment._id
+          entityType: "Payment",
+          entityId: payment._id,
         },
-        channels: ['in_app', 'email'],
+        channels: ["in_app", "email"],
         actionUrl: `/earnings`,
-        actionText: 'View Earnings',
-        metadata: { paymentId: payment.paymentId, amount: payment.amount.technicianShare }
+        actionText: "View Earnings",
+        metadata: {
+          paymentId: payment.paymentId,
+          amount: payment.amount.technicianShare,
+        },
       };
-      
+
       notifications.push(await sendNotification(technicianNotificationData));
     }
-    
+
     return notifications;
   } catch (error) {
-    console.error('Failed to send payment notifications:', error);
+    console.error("Failed to send payment notifications:", error);
     throw error;
   }
 };
@@ -120,17 +127,17 @@ export const sendSystemNotification = async (data) => {
     const notificationData = {
       title: data.title,
       message: data.message,
-      type: 'system',
-      priority: data.priority || 'medium',
+      type: "system",
+      priority: data.priority || "medium",
       recipient: data.recipient,
       recipientModel: data.recipientModel,
-      channels: data.channels || ['in_app'],
-      metadata: data.metadata || {}
+      channels: data.channels || ["in_app"],
+      metadata: data.metadata || {},
     };
-    
+
     return await sendNotification(notificationData);
   } catch (error) {
-    console.error('Failed to send system notification:', error);
+    console.error("Failed to send system notification:", error);
     throw error;
   }
 };
@@ -139,26 +146,26 @@ export const sendSystemNotification = async (data) => {
 function getBookingNotificationTitle(type, recipientType) {
   const titles = {
     user: {
-      created: 'Booking Created',
-      confirmed: 'Booking Confirmed',
-      assigned: 'Technician Assigned',
-      in_progress: 'Service Started',
-      completed: 'Service Completed',
-      cancelled: 'Booking Cancelled',
-      rescheduled: 'Booking Rescheduled'
+      created: "Booking Created",
+      confirmed: "Booking Confirmed",
+      assigned: "Technician Assigned",
+      in_progress: "Service Started",
+      completed: "Service Completed",
+      cancelled: "Booking Cancelled",
+      rescheduled: "Booking Rescheduled",
     },
     technician: {
-      created: 'New Booking Request',
-      confirmed: 'Booking Confirmed',
-      assigned: 'New Booking Assigned',
-      in_progress: 'Service Started',
-      completed: 'Service Completed',
-      cancelled: 'Booking Cancelled',
-      rescheduled: 'Booking Rescheduled'
-    }
+      created: "New Booking Request",
+      confirmed: "Booking Confirmed",
+      assigned: "New Booking Assigned",
+      in_progress: "Service Started",
+      completed: "Service Completed",
+      cancelled: "Booking Cancelled",
+      rescheduled: "Booking Rescheduled",
+    },
   };
-  
-  return titles[recipientType]?.[type] || 'Booking Update';
+
+  return titles[recipientType]?.[type] || "Booking Update";
 }
 
 function getBookingNotificationMessage(type, recipientType, booking) {
@@ -170,7 +177,7 @@ function getBookingNotificationMessage(type, recipientType, booking) {
       in_progress: `Service for your booking ${booking.bookingId} has started.`,
       completed: `Service for your booking ${booking.bookingId} has been completed successfully.`,
       cancelled: `Your booking ${booking.bookingId} has been cancelled.`,
-      rescheduled: `Your booking ${booking.bookingId} has been rescheduled.`
+      rescheduled: `Your booking ${booking.bookingId} has been rescheduled.`,
     },
     technician: {
       created: `New booking request ${booking.bookingId} received.`,
@@ -179,29 +186,32 @@ function getBookingNotificationMessage(type, recipientType, booking) {
       in_progress: `Service for booking ${booking.bookingId} has started.`,
       completed: `Service for booking ${booking.bookingId} has been completed.`,
       cancelled: `Booking ${booking.bookingId} has been cancelled.`,
-      rescheduled: `Booking ${booking.bookingId} has been rescheduled.`
-    }
+      rescheduled: `Booking ${booking.bookingId} has been rescheduled.`,
+    },
   };
-  
-  return messages[recipientType]?.[type] || `Update for booking ${booking.bookingId}.`;
+
+  return (
+    messages[recipientType]?.[type] ||
+    `Update for booking ${booking.bookingId}.`
+  );
 }
 
 function getPaymentNotificationTitle(type, recipientType) {
   const titles = {
     user: {
-      created: 'Payment Initiated',
-      paid: 'Payment Successful',
-      failed: 'Payment Failed',
-      refunded: 'Payment Refunded'
+      created: "Payment Initiated",
+      paid: "Payment Successful",
+      failed: "Payment Failed",
+      refunded: "Payment Refunded",
     },
     technician: {
-      paid: 'Payment Received',
-      failed: 'Payment Failed',
-      refunded: 'Payment Refunded'
-    }
+      paid: "Payment Received",
+      failed: "Payment Failed",
+      refunded: "Payment Refunded",
+    },
   };
-  
-  return titles[recipientType]?.[type] || 'Payment Update';
+
+  return titles[recipientType]?.[type] || "Payment Update";
 }
 
 function getPaymentNotificationMessage(type, recipientType, payment) {
@@ -210,26 +220,32 @@ function getPaymentNotificationMessage(type, recipientType, payment) {
       created: `Payment of ₹${payment.amount.total} has been initiated for your booking.`,
       paid: `Payment of ₹${payment.amount.total} has been processed successfully.`,
       failed: `Payment of ₹${payment.amount.total} has failed. Please try again.`,
-      refunded: `Refund of ₹${payment.amount.total} has been processed.`
+      refunded: `Refund of ₹${payment.amount.total} has been processed.`,
     },
     technician: {
       paid: `You have received ₹${payment.amount.technicianShare} for completed service.`,
       failed: `Payment processing failed for booking.`,
-      refunded: `Payment has been refunded to the customer.`
-    }
+      refunded: `Payment has been refunded to the customer.`,
+    },
   };
-  
-  return messages[recipientType]?.[type] || `Payment update for ${payment.paymentId}.`;
+
+  return (
+    messages[recipientType]?.[type] ||
+    `Payment update for ${payment.paymentId}.`
+  );
 }
 
 // Middleware to automatically send notifications
-export const notificationMiddleware = (notificationType, getNotificationData) => {
+export const notificationMiddleware = (
+  notificationType,
+  getNotificationData,
+) => {
   return async (req, res, next) => {
     // Store original res.json function
     const originalJson = res.json;
-    
+
     // Override res.json to intercept the response
-    res.json = async function(data) {
+    res.json = async function (data) {
       // Only send notifications on successful responses
       if (res.statusCode >= 200 && res.statusCode < 300) {
         try {
@@ -238,15 +254,15 @@ export const notificationMiddleware = (notificationType, getNotificationData) =>
             await sendNotification(notificationData);
           }
         } catch (error) {
-          console.error('Failed to send notification:', error);
+          console.error("Failed to send notification:", error);
           // Don't fail the request if notification fails
         }
       }
-      
+
       // Call original json function
       return originalJson.call(this, data);
     };
-    
+
     next();
   };
 };
@@ -255,41 +271,41 @@ export const notificationMiddleware = (notificationType, getNotificationData) =>
 // Create email transporter
 const createEmailTransporter = () => {
   return nodemailer.createTransport({
-    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+    host: process.env.EMAIL_HOST || "smtp.gmail.com",
     port: process.env.EMAIL_PORT || 587,
-    secure: process.env.EMAIL_SECURE === 'true', // true for 465, false for other ports
+    secure: process.env.EMAIL_SECURE === "true", // true for 465, false for other ports
     auth: {
       user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
-    }
+      pass: process.env.EMAIL_PASS,
+    },
   });
 };
 
 export const sendEmail = async (email, subject, message, isHtml = false) => {
   try {
     const transporter = createEmailTransporter();
-    
+
     const mailOptions = {
-      from: `"${process.env.EMAIL_FROM_NAME || 'Repairum'}" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
+      from: `"${process.env.EMAIL_FROM_NAME || "Repairum"}" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
       to: email,
       subject: subject,
-      [isHtml ? 'html' : 'text']: message
+      [isHtml ? "html" : "text"]: message,
     };
 
     const result = await transporter.sendMail(mailOptions);
-    
+
     console.log(`Email sent successfully to ${email}: ${subject}`);
     console.log(`Message ID: ${result.messageId}`);
-    
+
     return {
       success: true,
       messageId: result.messageId,
       to: email,
       subject,
-      response: result.response
+      response: result.response,
     };
   } catch (error) {
-    console.error('Failed to send email:', error);
+    console.error("Failed to send email:", error);
     throw new Error(`Email sending failed: ${error.message}`);
   }
 };
@@ -304,49 +320,53 @@ export const sendTemplatedEmail = async (email, template, data = {}) => {
   try {
     const templates = {
       verification: {
-        subject: 'Verify Your Email Address',
-        html: generateVerificationTemplate(data)
+        subject: "Verify Your Email Address",
+        html: generateVerificationTemplate(data),
       },
       passwordReset: {
-        subject: 'Reset Your Password',
-        html: generatePasswordResetTemplate(data)
+        subject: "Reset Your Password",
+        html: generatePasswordResetTemplate(data),
       },
       welcome: {
-        subject: 'Welcome to Repairum',
-        html: generateWelcomeTemplate(data)
+        subject: "Welcome to Repairum",
+        html: generateWelcomeTemplate(data),
       },
       bookingConfirmation: {
-        subject: 'Booking Confirmed',
-        html: generateBookingConfirmationTemplate(data)
+        subject: "Booking Confirmed",
+        html: generateBookingConfirmationTemplate(data),
       },
       bookingCreated: {
-        subject: 'Booking Created Successfully',
-        html: generateBookingCreatedTemplate(data)
+        subject: "Booking Created Successfully",
+        html: generateBookingCreatedTemplate(data),
       },
       technicianAssigned: {
-        subject: 'Technician Assigned to Your Booking',
-        html: generateTechnicianAssignedTemplate(data)
+        subject: "Technician Assigned to Your Booking",
+        html: generateTechnicianAssignedTemplate(data),
       },
       newServiceRequest: {
-        subject: 'New Service Request in Your Area',
-        html: generateNewServiceRequestTemplate(data)
+        subject: "New Service Request in Your Area",
+        html: generateNewServiceRequestTemplate(data),
       },
       bookingCancelled: {
-        subject: 'Booking Cancelled',
-        html: generateBookingCancelledTemplate(data)
+        subject: "Booking Cancelled",
+        html: generateBookingCancelledTemplate(data),
       },
       bookingStatusUpdate: {
-        subject: 'Booking Status Updated',
-        html: generateBookingStatusUpdateTemplate(data)
+        subject: "Booking Status Updated",
+        html: generateBookingStatusUpdateTemplate(data),
       },
       serviceRequestResponse: {
-        subject: 'Service Request Response',
-        html: generateServiceRequestResponseTemplate(data)
+        subject: "Service Request Response",
+        html: generateServiceRequestResponseTemplate(data),
       },
       passwordChanged: {
-        subject: 'Password Changed Successfully',
-        html: generatePasswordChangedTemplate(data)
-      }
+        subject: "Password Changed Successfully",
+        html: generatePasswordChangedTemplate(data),
+      },
+      newReview: {
+        subject: "You received a new review",
+        html: generateNewReviewTemplate(data),
+      },
     };
 
     const emailTemplate = templates[template];
@@ -354,9 +374,13 @@ export const sendTemplatedEmail = async (email, template, data = {}) => {
       throw new Error(`Email template '${template}' not found`);
     }
 
-    return await sendHtmlEmail(email, emailTemplate.subject, emailTemplate.html);
+    return await sendHtmlEmail(
+      email,
+      emailTemplate.subject,
+      emailTemplate.html,
+    );
   } catch (error) {
-    console.error('Failed to send templated email:', error);
+    console.error("Failed to send templated email:", error);
     throw error;
   }
 };
@@ -385,11 +409,11 @@ const generateVerificationTemplate = (data) => {
           <h1>Verify Your Email Address</h1>
         </div>
         <div class="content">
-          <p>Hello ${data.firstName || 'User'},</p>
+          <p>Hello ${data.firstName || "User"},</p>
           <p>Thank you for registering with Repairum. To complete your registration, please verify your email address.</p>
           <p>Your verification code is: <strong>${data.verificationToken}</strong></p>
           <p>Or click the button below:</p>
-          <a href="${data.verificationUrl || '#'}" class="button">Verify Email</a>
+          <a href="${data.verificationUrl || "#"}" class="button">Verify Email</a>
           <p>This verification link will expire in 24 hours.</p>
           <p>If you didn't create an account with Repairum, please ignore this email.</p>
         </div>
@@ -425,7 +449,7 @@ const generatePasswordResetTemplate = (data) => {
           <h1>Reset Your Password</h1>
         </div>
         <div class="content">
-          <p>Hello ${data.firstName || 'User'},</p>
+          <p>Hello ${data.firstName || "User"},</p>
           <p>We received a request to reset your password for your Repairum account.</p>
           <p>Click the button below to reset your password:</p>
           <a href="${data.resetUrl}" class="button">Reset Password</a>
@@ -473,7 +497,7 @@ const generateWelcomeTemplate = (data) => {
             <li>Manage your profile</li>
             <li>View service history</li>
           </ul>
-          <a href="${data.loginUrl || '#'}" class="button">Get Started</a>
+          <a href="${data.loginUrl || "#"}" class="button">Get Started</a>
           <p>If you have any questions, feel free to contact our support team.</p>
         </div>
         <div class="footer">
@@ -518,7 +542,7 @@ const generateBookingConfirmationTemplate = (data) => {
             <p><strong>Time:</strong> ${data.time}</p>
             <p><strong>Technician:</strong> ${data.technician}</p>
           </div>
-          <a href="${data.bookingUrl || '#'}" class="button">View Booking</a>
+          <a href="${data.bookingUrl || "#"}" class="button">View Booking</a>
           <p>Thank you for choosing Repairum!</p>
         </div>
         <div class="footer">
@@ -552,7 +576,7 @@ const generatePasswordChangedTemplate = (data) => {
           <h1>Password Changed Successfully</h1>
         </div>
         <div class="content">
-          <p>Hello ${data.firstName || 'User'},</p>
+          <p>Hello ${data.firstName || "User"},</p>
           <p>Your password for your Repairum account has been successfully changed.</p>
           <p>If you didn't make this change, please contact our support team immediately.</p>
           <p>For security reasons, please:</p>
@@ -572,51 +596,108 @@ const generatePasswordChangedTemplate = (data) => {
   `;
 };
 
+const generateNewReviewTemplate = (data) => {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>New Review</title>
+      <style>
+        body { font-family: Arial, sans-serif; background:#f9f9f9; padding:20px; }
+        .container { max-width:600px; margin:auto; background:white; padding:20px; border-radius:8px; }
+        .header { background:#4CAF50; color:white; padding:15px; text-align:center; border-radius:6px 6px 0 0; }
+        .content { padding:15px; }
+        .review-box { background:#f1f1f1; padding:15px; border-radius:6px; margin-top:10px; }
+        .footer { text-align:center; font-size:12px; color:#666; margin-top:20px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        
+        <div class="header">
+          <h2>⭐ New Review Received</h2>
+        </div>
+
+        <div class="content">
+          <p>Hello ${data.firstName},</p>
+
+          <p>You have received a new review:</p>
+
+          <div class="review-box">
+            <p><strong>Reviewer:</strong> ${data.reviewerName}</p>
+            <p><strong>Rating:</strong> ${data.score} ⭐</p>
+            <p><strong>Review:</strong> ${data.review}</p>
+          </div>
+
+          <p style="margin-top:15px;">
+            Booking ID: <strong>${data.bookingId}</strong>
+          </p>
+
+          <p>Keep up the great work 🚀</p>
+        </div>
+
+        <div class="footer">
+          <p>© 2026 Repairum. All rights reserved.</p>
+        </div>
+
+      </div>
+    </body>
+    </html>
+  `;
+};
+
 // Send SMS (mock implementation - integrate with actual SMS service)
 export const sendSMS = async (phone, message) => {
   try {
     // In production, integrate with services like Twilio, MessageBird, etc.
     console.log(`Sending SMS to ${phone}: ${message}`);
-    
+
     // Mock implementation - replace with actual SMS service
     return {
       success: true,
       messageId: `sms_${Date.now()}`,
-      to: phone
+      to: phone,
     };
   } catch (error) {
-    console.error('Failed to send SMS:', error);
+    console.error("Failed to send SMS:", error);
     throw error;
   }
 };
 
 // Send Push Notification (mock implementation - integrate with actual push service)
-export const sendPushNotification = async (userId, title, message, data = {}) => {
+export const sendPushNotification = async (
+  userId,
+  title,
+  message,
+  data = {},
+) => {
   try {
     // In production, integrate with services like Firebase Cloud Messaging, OneSignal, etc.
     console.log(`Sending push notification to user ${userId}: ${title}`);
     console.log(`Message: ${message}`);
-    
+
     // Store notification in database for in-app display
     const notificationData = {
       title,
       message,
-      type: 'push',
+      type: "push",
       recipient: userId,
-      recipientModel: 'User', // This should be dynamic based on user role
-      channels: ['in_app', 'push'],
-      metadata: data
+      recipientModel: "User", // This should be dynamic based on user role
+      channels: ["in_app", "push"],
+      metadata: data,
     };
-    
+
     await sendNotification(notificationData);
-    
+
     return {
       success: true,
       notificationId: `push_${Date.now()}`,
-      userId
+      userId,
     };
   } catch (error) {
-    console.error('Failed to send push notification:', error);
+    console.error("Failed to send push notification:", error);
     throw error;
   }
 };
@@ -855,7 +936,7 @@ const generateServiceRequestResponseTemplate = (data) => {
       <style>
         body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: ${data.response === 'accept' ? '#4CAF50' : '#f44336'}; color: white; padding: 20px; text-align: center; }
+        .header { background: ${data.response === "accept" ? "#4CAF50" : "#f44336"}; color: white; padding: 20px; text-align: center; }
         .content { padding: 20px; }
         .response-details { background: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0; }
         .footer { background: #f4f4f4; padding: 20px; text-align: center; font-size: 12px; }
@@ -864,18 +945,18 @@ const generateServiceRequestResponseTemplate = (data) => {
     <body>
       <div class="container">
         <div class="header">
-          <h1>Service Request ${data.response === 'accept' ? 'Accepted' : 'Rejected'}</h1>
+          <h1>Service Request ${data.response === "accept" ? "Accepted" : "Rejected"}</h1>
         </div>
         <div class="content">
           <p>Hi ${data.firstName},</p>
-          <p>Your service request has been ${data.response === 'accept' ? 'accepted' : 'rejected'}.</p>
+          <p>Your service request has been ${data.response === "accept" ? "accepted" : "rejected"}.</p>
           <div class="response-details">
             <h3>Request Details:</h3>
             <p><strong>Booking ID:</strong> ${data.bookingId}</p>
             <p><strong>Technician:</strong> ${data.technicianName}</p>
-            <p><strong>Response:</strong> ${data.response === 'accept' ? 'Accepted' : 'Rejected'}</p>
+            <p><strong>Response:</strong> ${data.response === "accept" ? "Accepted" : "Rejected"}</p>
           </div>
-          ${data.response === 'accept' ? '<p>The technician will contact you shortly to schedule the service.</p>' : '<p>You can create a new booking request or wait for other technicians to respond.</p>'}
+          ${data.response === "accept" ? "<p>The technician will contact you shortly to schedule the service.</p>" : "<p>You can create a new booking request or wait for other technicians to respond.</p>"}
         </div>
         <div class="footer">
           <p>© 2026 Repairum. All rights reserved.</p>

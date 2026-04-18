@@ -238,6 +238,7 @@ export const createReview = async (req, res) => {
 
     await newReview.save();
 
+    const technician = await Technician.findById(technicianId);
     // Send notification to technician
     await sendPushNotification(
       technicianId,
