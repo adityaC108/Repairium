@@ -1,14 +1,26 @@
-import Review from '../models/Review.js';
-import Booking from '../models/Booking.js';
-import User from '../models/User.js';
-import Technician from '../models/Technician.js';
-import { sendEmail, sendPushNotification, sendTemplatedEmail } from '../middleware/notification.js';
-import { paginate, createPaginationResponse } from '../utils/helpers.js';
+import Review from "../models/Review.js";
+import Booking from "../models/Booking.js";
+import User from "../models/User.js";
+import Technician from "../models/Technician.js";
+import {
+  sendEmail,
+  sendPushNotification,
+  sendTemplatedEmail,
+} from "../middleware/notification.js";
+import { paginate, createPaginationResponse } from "../utils/helpers.js";
 
 // Get All Reviews (Admin)
 export const getAllReviews = async (req, res) => {
   try {
-    const { page = 1, limit = 10, search, rating, status, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      rating,
+      status,
+      sortBy = "createdAt",
+      sortOrder = "desc",
+    } = req.query;
 
     // Build query
     const query = {};
@@ -20,21 +32,21 @@ export const getAllReviews = async (req, res) => {
     }
     if (search) {
       query.$or = [
-        { review: { $regex: search, $options: 'i' } },
-        { 'user.firstName': { $regex: search, $options: 'i' } },
-        { 'user.lastName': { $regex: search, $options: 'i' } },
-        { 'technician.firstName': { $regex: search, $options: 'i' } },
-        { 'technician.lastName': { $regex: search, $options: 'i' } }
+        { review: { $regex: search, $options: "i" } },
+        { "user.firstName": { $regex: search, $options: "i" } },
+        { "user.lastName": { $regex: search, $options: "i" } },
+        { "technician.firstName": { $regex: search, $options: "i" } },
+        { "technician.lastName": { $regex: search, $options: "i" } },
       ];
     }
 
     const { skip, limit: limitNum } = paginate(parseInt(page), parseInt(limit));
 
     const reviews = await Review.find(query)
-      .populate('user', 'firstName lastName email avatar')
-      .populate('technician', 'firstName lastName email avatar')
-      .populate('booking', 'bookingId createdAt')
-      .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
+      .populate("user", "firstName lastName email avatar")
+      .populate("technician", "firstName lastName email avatar")
+      .populate("booking", "bookingId createdAt")
+      .sort({ [sortBy]: sortOrder === "asc" ? 1 : -1 })
       .skip(skip)
       .limit(limitNum);
 
@@ -42,15 +54,15 @@ export const getAllReviews = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Reviews retrieved successfully',
-      data: createPaginationResponse(reviews, parseInt(page), limitNum, total)
+      message: "Reviews retrieved successfully",
+      data: createPaginationResponse(reviews, parseInt(page), limitNum, total),
     });
   } catch (error) {
-    console.error('Get all reviews error:', error);
+    console.error("Get all reviews error:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to retrieve reviews',
-      error: error.message
+      message: "Failed to retrieve reviews",
+      error: error.message,
     });
   }
 };
@@ -61,30 +73,30 @@ export const getReviewById = async (req, res) => {
     const { reviewId } = req.params;
 
     const review = await Review.findById(reviewId)
-      .populate('user', 'firstName lastName email avatar')
-      .populate('technician', 'firstName lastName email avatar')
-      .populate('booking', 'bookingId createdAt finalAmount');
+      .populate("user", "firstName lastName email avatar")
+      .populate("technician", "firstName lastName email avatar")
+      .populate("booking", "bookingId createdAt finalAmount");
 
     if (!review) {
       return res.status(404).json({
         success: false,
-        message: 'Review not found'
+        message: "Review not found",
       });
     }
 
     res.status(200).json({
       success: true,
-      message: 'Review retrieved successfully',
+      message: "Review retrieved successfully",
       data: {
-        review
-      }
+        review,
+      },
     });
   } catch (error) {
-    console.error('Get review by ID error:', error);
+    console.error("Get review by ID error:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to retrieve review',
-      error: error.message
+      message: "Failed to retrieve review",
+      error: error.message,
     });
   }
 };
@@ -93,7 +105,13 @@ export const getReviewById = async (req, res) => {
 export const getUserReviews = async (req, res) => {
   try {
     const { user } = req;
-    const { page = 1, limit = 10, rating, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      rating,
+      sortBy = "createdAt",
+      sortOrder = "desc",
+    } = req.query;
 
     // Build query
     const query = { user: user._id };
@@ -104,9 +122,9 @@ export const getUserReviews = async (req, res) => {
     const { skip, limit: limitNum } = paginate(parseInt(page), parseInt(limit));
 
     const reviews = await Review.find(query)
-      .populate('technician', 'firstName lastName email avatar')
-      .populate('booking', 'bookingId createdAt finalAmount')
-      .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
+      .populate("technician", "firstName lastName email avatar")
+      .populate("booking", "bookingId createdAt finalAmount")
+      .sort({ [sortBy]: sortOrder === "asc" ? 1 : -1 })
       .skip(skip)
       .limit(limitNum);
 
@@ -114,15 +132,15 @@ export const getUserReviews = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'User reviews retrieved successfully',
-      data: createPaginationResponse(reviews, parseInt(page), limitNum, total)
+      message: "User reviews retrieved successfully",
+      data: createPaginationResponse(reviews, parseInt(page), limitNum, total),
     });
   } catch (error) {
-    console.error('Get user reviews error:', error);
+    console.error("Get user reviews error:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to retrieve user reviews',
-      error: error.message
+      message: "Failed to retrieve user reviews",
+      error: error.message,
     });
   }
 };
@@ -131,7 +149,14 @@ export const getUserReviews = async (req, res) => {
 export const getTechnicianReviews = async (req, res) => {
   try {
     const technician = req.user;
-    const { page = 1, limit = 10, rating, status, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      rating,
+      status,
+      sortBy = "createdAt",
+      sortOrder = "desc",
+    } = req.query;
 
     // Build query
     const query = { technician: technician._id };
@@ -145,9 +170,9 @@ export const getTechnicianReviews = async (req, res) => {
     const { skip, limit: limitNum } = paginate(parseInt(page), parseInt(limit));
 
     const reviews = await Review.find(query)
-      .populate('user', 'firstName lastName email avatar')
-      .populate('booking', 'bookingId createdAt finalAmount')
-      .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
+      .populate("user", "firstName lastName email avatar")
+      .populate("booking", "bookingId createdAt finalAmount")
+      .sort({ [sortBy]: sortOrder === "asc" ? 1 : -1 })
       .skip(skip)
       .limit(limitNum);
 
@@ -155,15 +180,15 @@ export const getTechnicianReviews = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Technician reviews retrieved successfully',
-      data: createPaginationResponse(reviews, parseInt(page), limitNum, total)
+      message: "Technician reviews retrieved successfully",
+      data: createPaginationResponse(reviews, parseInt(page), limitNum, total),
     });
   } catch (error) {
-    console.error('Get technician reviews error:', error);
+    console.error("Get technician reviews error:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to retrieve technician reviews',
-      error: error.message
+      message: "Failed to retrieve technician reviews",
+      error: error.message,
     });
   }
 };
@@ -175,29 +200,29 @@ export const createReview = async (req, res) => {
     const { bookingId, technicianId, score, review } = req.body;
 
     // Check if booking exists and belongs to user
-    const booking = await Booking.findOne({ 
-      _id: bookingId, 
+    const booking = await Booking.findOne({
+      _id: bookingId,
       user: user._id,
-      status: 'completed' 
+      status: "completed",
     });
 
     if (!booking) {
       return res.status(404).json({
         success: false,
-        message: 'Booking not found or not completed'
+        message: "Booking not found or not completed",
       });
     }
 
     // Check if review already exists
-    const existingReview = await Review.findOne({ 
+    const existingReview = await Review.findOne({
       booking: bookingId,
-      user: user._id 
+      user: user._id,
     });
 
     if (existingReview) {
       return res.status(400).json({
         success: false,
-        message: 'Review already exists for this booking'
+        message: "Review already exists for this booking",
       });
     }
 
@@ -208,45 +233,39 @@ export const createReview = async (req, res) => {
       booking: bookingId,
       score,
       review,
-      status: 'published'
+      status: "published",
     });
 
     await newReview.save();
 
-    // Update technician rating
-    const technician = await Technician.findById(technicianId);
-    if (technician) {
-      await technician.updateRating(score);
-    }
-
     // Send notification to technician
     await sendPushNotification(
       technicianId,
-      'New Review',
-      `${user.firstName} ${user.lastName} left you a ${score}-star review`
+      "New Review",
+      `${user.firstName} ${user.lastName} left you a ${score}-star review`,
     );
 
-    await sendTemplatedEmail(technician.email, 'newReview', {
+    await sendTemplatedEmail(technician.email, "newReview", {
       firstName: technician.firstName,
       reviewerName: `${user.firstName} ${user.lastName}`,
       score,
       review,
-      bookingId: booking.bookingId
+      bookingId: booking.bookingId,
     });
 
     res.status(201).json({
       success: true,
-      message: 'Review created successfully',
+      message: "Review created successfully",
       data: {
-        review: newReview
-      }
+        review: newReview,
+      },
     });
   } catch (error) {
-    console.error('Create review error:', error);
+    console.error("Create review error:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to create review',
-      error: error.message
+      message: "Failed to create review",
+      error: error.message,
     });
   }
 };
@@ -264,7 +283,7 @@ export const updateReview = async (req, res) => {
     if (!review) {
       return res.status(404).json({
         success: false,
-        message: 'Review not found'
+        message: "Review not found",
       });
     }
 
@@ -272,7 +291,7 @@ export const updateReview = async (req, res) => {
     if (!admin && review.user.toString() !== user._id.toString()) {
       return res.status(403).json({
         success: false,
-        message: 'Not authorized to update this review'
+        message: "Not authorized to update this review",
       });
     }
 
@@ -285,11 +304,10 @@ export const updateReview = async (req, res) => {
     delete updates.__v;
 
     // Update the review
-    const updatedReview = await Review.findByIdAndUpdate(
-      reviewId,
-      updates,
-      { new: true, runValidators: true }
-    );
+    const updatedReview = await Review.findByIdAndUpdate(reviewId, updates, {
+      new: true,
+      runValidators: true,
+    });
 
     // If score was updated, recalculate technician rating
     if (updates.score && review.technician) {
@@ -301,17 +319,17 @@ export const updateReview = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Review updated successfully',
+      message: "Review updated successfully",
       data: {
-        review: updatedReview
-      }
+        review: updatedReview,
+      },
     });
   } catch (error) {
-    console.error('Update review error:', error);
+    console.error("Update review error:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to update review',
-      error: error.message
+      message: "Failed to update review",
+      error: error.message,
     });
   }
 };
@@ -328,7 +346,7 @@ export const deleteReview = async (req, res) => {
     if (!review) {
       return res.status(404).json({
         success: false,
-        message: 'Review not found'
+        message: "Review not found",
       });
     }
 
@@ -336,7 +354,7 @@ export const deleteReview = async (req, res) => {
     if (!admin && review.user.toString() !== user._id.toString()) {
       return res.status(403).json({
         success: false,
-        message: 'Not authorized to delete this review'
+        message: "Not authorized to delete this review",
       });
     }
 
@@ -352,14 +370,14 @@ export const deleteReview = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Review deleted successfully'
+      message: "Review deleted successfully",
     });
   } catch (error) {
-    console.error('Delete review error:', error);
+    console.error("Delete review error:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to delete review',
-      error: error.message
+      message: "Failed to delete review",
+      error: error.message,
     });
   }
 };
@@ -375,7 +393,7 @@ export const updateReviewStatus = async (req, res) => {
     if (!review) {
       return res.status(404).json({
         success: false,
-        message: 'Review not found'
+        message: "Review not found",
       });
     }
 
@@ -386,30 +404,30 @@ export const updateReviewStatus = async (req, res) => {
     await review.save();
 
     // Notify user if review was moderated
-    if (status === 'rejected' || status === 'hidden') {
+    if (status === "flagged" || status === "hidden") {
       const user = await User.findById(review.user);
       if (user) {
-        await sendTemplatedEmail(user.email, 'reviewModeration', {
+        await sendTemplatedEmail(user.email, "reviewModeration", {
           firstName: user.firstName,
           status,
-          reason
+          reason,
         });
       }
     }
 
     res.status(200).json({
       success: true,
-      message: 'Review status updated successfully',
+      message: "Review status updated successfully",
       data: {
-        review
-      }
+        review,
+      },
     });
   } catch (error) {
-    console.error('Update review status error:', error);
+    console.error("Update review status error:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to update review status',
-      error: error.message
+      message: "Failed to update review status",
+      error: error.message,
     });
   }
 };
@@ -417,15 +435,21 @@ export const updateReviewStatus = async (req, res) => {
 // Get Review Statistics
 export const getReviewStatistics = async (req, res) => {
   try {
-    const { period = 'all' } = req.query;
+    const { period = "all" } = req.query;
 
     let dateFilter = {};
-    if (period === 'month') {
-      dateFilter = { createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } };
-    } else if (period === 'quarter') {
-      dateFilter = { createdAt: { $gte: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000) } };
-    } else if (period === 'year') {
-      dateFilter = { createdAt: { $gte: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000) } };
+    if (period === "month") {
+      dateFilter = {
+        createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
+      };
+    } else if (period === "quarter") {
+      dateFilter = {
+        createdAt: { $gte: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000) },
+      };
+    } else if (period === "year") {
+      dateFilter = {
+        createdAt: { $gte: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000) },
+      };
     }
 
     // Overall statistics
@@ -435,12 +459,12 @@ export const getReviewStatistics = async (req, res) => {
         $group: {
           _id: null,
           totalReviews: { $sum: 1 },
-          averageRating: { $avg: '$score' },
+          averageRating: { $avg: "$score" },
           ratingDistribution: {
-            $push: '$score'
-          }
-        }
-      }
+            $push: "$score",
+          },
+        },
+      },
     ]);
 
     // Rating distribution
@@ -448,11 +472,11 @@ export const getReviewStatistics = async (req, res) => {
       { $match: dateFilter },
       {
         $group: {
-          _id: '$score',
-          count: { $sum: 1 }
-        }
+          _id: "$score",
+          count: { $sum: 1 },
+        },
       },
-      { $sort: { '_id': 1 } }
+      { $sort: { _id: 1 } },
     ]);
 
     // Reviews by status
@@ -460,50 +484,54 @@ export const getReviewStatistics = async (req, res) => {
       { $match: dateFilter },
       {
         $group: {
-          _id: '$status',
-          count: { $sum: 1 }
-        }
-      }
+          _id: "$status",
+          count: { $sum: 1 },
+        },
+      },
     ]);
 
     // Monthly trends
     const monthlyTrends = await Review.aggregate([
-      { $match: { createdAt: { $gte: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000) } } },
+      {
+        $match: {
+          createdAt: { $gte: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000) },
+        },
+      },
       {
         $group: {
           _id: {
-            year: { $year: '$createdAt' },
-            month: { $month: '$createdAt' }
+            year: { $year: "$createdAt" },
+            month: { $month: "$createdAt" },
           },
           count: { $sum: 1 },
-          averageRating: { $avg: '$score' }
-        }
+          averageRating: { $avg: "$score" },
+        },
       },
-      { $sort: { '_id.year': 1, '_id.month': 1 } }
+      { $sort: { "_id.year": 1, "_id.month": 1 } },
     ]);
 
     const statistics = {
       overall: overallStats[0] || {
         totalReviews: 0,
         averageRating: 0,
-        ratingDistribution: []
+        ratingDistribution: [],
       },
       ratingDistribution,
       statusDistribution,
-      monthlyTrends
+      monthlyTrends,
     };
 
     res.status(200).json({
       success: true,
-      message: 'Review statistics retrieved successfully',
-      data: statistics
+      message: "Review statistics retrieved successfully",
+      data: statistics,
     });
   } catch (error) {
-    console.error('Get review statistics error:', error);
+    console.error("Get review statistics error:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to retrieve review statistics',
-      error: error.message
+      message: "Failed to retrieve review statistics",
+      error: error.message,
     });
   }
 };
@@ -515,50 +543,56 @@ export const respondToReview = async (req, res) => {
     const { reviewId } = req.params;
     const { response } = req.body;
 
-    const review = await Review.findById(reviewId)
-      .populate('user', 'firstName lastName email');
+    const review = await Review.findById(reviewId).populate(
+      "user",
+      "firstName lastName email",
+    );
 
     if (!review) {
       return res.status(404).json({
         success: false,
-        message: 'Review not found'
+        message: "Review not found",
       });
     }
 
     // Check permissions
-    if (!admin && (!technician || review.technician.toString() !== technician._id.toString())) {
+    if (
+      !admin &&
+      (!technician ||
+        review.technician.toString() !== technician._id.toString())
+    ) {
       return res.status(403).json({
         success: false,
-        message: 'Not authorized to respond to this review'
+        message: "Not authorized to respond to this review",
       });
     }
 
     review.response = response;
-    review.respondedBy = admin ? 'admin' : 'technician';
-    review.respondedAt = new Date();
+    review.responseBy = admin ? admin._id : technician._id;
+    review.responseByModel = admin ? "Admin" : "Technician";
 
     await review.save();
 
     // Notify user about response
-    await sendTemplatedEmail(review.user.email, 'reviewResponse', {
+    await sendTemplatedEmail(review.user.email, "reviewResponse", {
       firstName: review.user.firstName,
       response,
-      responderType: review.respondedBy
+      responderType: review.responseByModel,
     });
 
     res.status(200).json({
       success: true,
-      message: 'Response added successfully',
+      message: "Response added successfully",
       data: {
-        review
-      }
+        review,
+      },
     });
   } catch (error) {
-    console.error('Respond to review error:', error);
+    console.error("Respond to review error:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to add response',
-      error: error.message
+      message: "Failed to add response",
+      error: error.message,
     });
   }
 };
@@ -573,5 +607,5 @@ export default {
   deleteReview,
   updateReviewStatus,
   getReviewStatistics,
-  respondToReview
+  respondToReview,
 };

@@ -9,6 +9,8 @@ import ServicesPage from "../pages/ServicesPage";
 import AboutPage from "../pages/AboutPage";
 import ContactPage from "../pages/ContactPage";
 
+import ReviewPage from "../pages/ReviewPage";
+
 import BookingPage from "../pages/BookingPage";
 import PaymentPage from "../pages/PaymentPage"; // ✅ NEW
 import PaymentSuccess from "../pages/PaymentSuccess"; // ✅ NEW
@@ -73,6 +75,8 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+
+      <Route path="/user/reviews/:bookingId/:technicianId" element={<ReviewPage />} />
 
       <Route
         path="/about"
