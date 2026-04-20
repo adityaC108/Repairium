@@ -172,9 +172,15 @@ reviewSchema.methods.updateTechnicianRating = async function() {
   const Technician = mongoose.model('Technician');
   const stats = await this.constructor.getTechnicianAverageRating(this.technician);
   
+  const { averageRating = 0, totalReviews = 0 } = stats;
   await Technician.findByIdAndUpdate(this.technician, {
     averageRating: stats.averageRating,
-    totalReviews: stats.totalReviews
+    totalReviews: stats.totalReviews,
+    $set: {
+      "rating.average": Number(averageRating.toFixed(1)), // Keep it clean for the HUD
+      "rating.total": totalReviews,   // Total volume
+      "rating.count": totalReviews    // Number of review nodes
+    }
   });
 };
 
