@@ -168,7 +168,7 @@ const CompletedBookingsPage = () => {
               <div className="p-8 md:p-12 space-y-12 max-h-[60vh] overflow-y-auto custom-scrollbar">
                 {/* Metrics Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  <Metric label="Service_Time" value="45_Mins" icon={<Clock size={16}/>} />
+                  <Metric label="Service_Time" value= {selectedBooking.duration} icon={<Clock size={16}/>} />
                   <Metric label="Outcome" value="Resolved" icon={<CheckCircle2 size={16}/>} />
                   <Metric label="Rating" value={selectedBooking.rating?.score ? `${selectedBooking.rating.score}/5` : 'Pending'} icon={<Star size={16}/>} />
                 </div>

@@ -36,6 +36,7 @@ import NotFound from "../pages/NotFound";
 import BookingProgressPage from "../pages/technician/BookingProgressPage";
 import MyBookingsPage from "../pages/technician/MyBookingsPage";
 import CompletedBookingsPage from "../pages/technician/CompletedBookingsPage";
+import TechnicianReviews from "../pages/technician/TechnicianReviews";
 
 const AppRoutes = () => {
   return (
@@ -203,6 +204,16 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <RoleRoute allowedRoles={["technician"]}>
               <CompletedBookingsPage />
+            </RoleRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/technician/reviews"
+        element={
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={["technician"]}>
+              <TechnicianReviews />
             </RoleRoute>
           </ProtectedRoute>
         }
