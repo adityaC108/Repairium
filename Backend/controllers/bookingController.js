@@ -238,6 +238,11 @@ export const acceptBooking = async (req, res) => {
       });
     }
 
+    // Increment the totalBookings count for the successful technician
+    await Technician.findByIdAndUpdate(technician._id, {
+      $inc: { totalBookings: 1 }
+    });
+
     // Notify technician about booking assignment using the new service
     TechnicianNotificationService.notifyBookingAssigned(updatedBooking, technician._id).catch((err) =>
       console.error('TechnicianNotificationService notifyBookingAssigned error:', err)

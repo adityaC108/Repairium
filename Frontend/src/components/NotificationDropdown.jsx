@@ -1,50 +1,23 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Bell, BellRing, Check, X, Settings, Trash2 } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Bell, BellRing, Check, X, Settings } from 'lucide-react';
 import notificationService from '../services/notificationService';
-import  useNotifications  from '../hooks/useNotifications';
+import useNotifications from '../hooks/useNotifications';
 import './NotificationDropdown.css';
 
 const NotificationDropdown = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [isFetching, setIsFetching] = useState(false);
   const dropdownRef = useRef(null);
   
   const { fetchNotifications, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    // Load initial notifications
-    loadNotifications();
+  // 🔥 Memoize loadNotifications so it doesn't trigger effect loops
+  const loadNotifications = useCallback(async (isSilent = false) => {
+    if (isFetching) return;
+    if (!isSilent) setIsFetching(true);
     
-    // Set up notification service listeners
-    notificationService.on('new_notification', handleNewNotification);
-    notificationService.on('notification_read', handleNotificationRead);
-    notificationService.on('all_notifications_read', handleAllNotificationsRead);
-    notificationService.on('notification_deleted', handleNotificationDeleted);
-    notificationService.on('notification_count_updated', updateNotificationCount);
-
-    return () => {
-      // Clean up listeners
-      notificationService.off('new_notification', handleNewNotification);
-      notificationService.off('notification_read', handleNotificationRead);
-      notificationService.off('all_notifications_read', handleAllNotificationsRead);
-      notificationService.off('notification_deleted', handleNotificationDeleted);
-      notificationService.off('notification_count_updated', updateNotificationCount);
-    };
-  }, []);
-
-  const loadNotifications = async () => {
     try {
       const response = await fetchNotifications({ limit: 10, unreadOnly: false });
       if (response.success) {
@@ -53,62 +26,69 @@ const NotificationDropdown = () => {
       }
     } catch (error) {
       console.error('Failed to load notifications:', error);
+    } finally {
+      setIsFetching(false);
     }
-  };
+  }, [fetchNotifications, isFetching]);
 
-  const handleNewNotification = (notification) => {
-    setNotifications(prev => [notification, ...prev.slice(0, 9)]);
-    setUnreadCount(prev => prev + 1);
-  };
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setIsOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
-  const handleNotificationRead = (data) => {
-    setNotifications(prev => 
-      prev.map(n => 
-        n.id === data.notificationId ? { ...n, isRead: true, readAt: new Date() } : n
-      )
-    );
-    setUnreadCount(prev => Math.max(0, prev - 1));
-  };
+  // Main Listener Setup
+  useEffect(() => {
+    loadNotifications();
 
-  const handleAllNotificationsRead = (data) => {
-    setNotifications(prev => 
-      prev.map(n => ({ ...n, isRead: true, readAt: new Date() }))
-    );
-    setUnreadCount(0);
-  };
+    const handleNewNotification = (notification) => {
+      setNotifications(prev => [notification, ...prev.slice(0, 9)]);
+      setUnreadCount(prev => prev + 1);
+    };
 
-  const handleNotificationDeleted = (data) => {
-    setNotifications(prev => prev.filter(n => n.id !== data.notificationId));
-    if (data.isRead === false) {
+    const handleNotificationRead = (data) => {
+      setNotifications(prev => 
+        prev.map(n => n.id === data.notificationId ? { ...n, isRead: true, readAt: new Date() } : n)
+      );
       setUnreadCount(prev => Math.max(0, prev - 1));
-    }
-  };
+    };
 
-  const updateNotificationCount = async () => {
-    try {
-      const response = await fetchNotifications({ limit: 1 });
-      if (response.success) {
-        setUnreadCount(response.data.unreadCount);
-      }
-    } catch (error) {
-      console.error('Failed to update notification count:', error);
-    }
-  };
+    const handleAllNotificationsRead = () => {
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true, readAt: new Date() })));
+      setUnreadCount(0);
+    };
+
+    // Attach listeners
+    notificationService.on('new_notification', handleNewNotification);
+    notificationService.on('notification_read', handleNotificationRead);
+    notificationService.on('all_notifications_read', handleAllNotificationsRead);
+    // Removed 'notification_count_updated' to prevent redundant network calls
+
+    return () => {
+      notificationService.off('new_notification', handleNewNotification);
+      notificationService.off('notification_read', handleNotificationRead);
+      notificationService.off('all_notifications_read', handleAllNotificationsRead);
+    };
+  }, []); // Empty dependency array ensures this only runs ONCE
 
   const handleMarkAsRead = async (notificationId, event) => {
-    event.stopPropagation();
+    if (event) event.stopPropagation();
     try {
       await markAsRead(notificationId);
+      // Logic is handled locally by the handleNotificationRead listener or state update
       notificationService.markNotificationRead(notificationId);
     } catch (error) {
-      console.error('Failed to mark notification as read:', error);
+      console.error('Failed to mark read:', error);
     }
   };
 
   const handleMarkAllAsRead = async () => {
     try {
       await markAllAsRead();
-      await loadNotifications();
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      setUnreadCount(0);
     } catch (error) {
       console.error('Failed to mark all as read:', error);
     }
@@ -126,16 +106,13 @@ const NotificationDropdown = () => {
 
   const handleNotificationClick = (notification) => {
     if (!notification.isRead) {
-      handleMarkAsRead(notification.id, { stopPropagation: () => {} });
+      handleMarkAsRead(notification.id);
     }
-    
-    if (notification.actionUrl) {
-      window.location.href = notification.actionUrl;
-    }
-    
+    if (notification.actionUrl) window.location.href = notification.actionUrl;
     setIsOpen(false);
   };
 
+  // UI Helper Components (Keep your existing switch and logic here)
   const getNotificationIcon = (type) => {
     switch (type) {
       case 'booking':
@@ -171,50 +148,31 @@ const NotificationDropdown = () => {
   };
 
   const formatTime = (timestamp) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
+    const diffMins = Math.floor((new Date() - new Date(timestamp)) / 60000);
     if (diffMins < 1) return 'Just now';
     if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-    return date.toLocaleDateString();
+    return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   return (
     <div className="notification-dropdown" ref={dropdownRef}>
-      <button 
-        className="notification-button"
-        onClick={() => setIsOpen(!isOpen)}
-        aria-label="Notifications"
-      >
+      <button className="notification-button" onClick={() => setIsOpen(!isOpen)}>
         {unreadCount > 0 ? (
           <div className="notification-bell-wrapper">
             <BellRing className="notification-bell" size={20} />
             <span className="notification-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
           </div>
-        ) : (
-          <Bell className="notification-bell" size={20} />
-        )}
+        ) : <Bell className='notification-bell' size={20} />}
       </button>
 
       {isOpen && (
         <div className="notification-dropdown-content">
           <div className="notification-header">
-            <h3>Notifications</h3>
+            <h3 className="text-[10px] font-black uppercase tracking-widest">Notifications</h3>
             <div className="notification-actions">
               {unreadCount > 0 && (
-                <button 
-                  className="mark-all-read-btn"
-                  onClick={handleMarkAllAsRead}
-                  title="Mark all as read"
-                >
-                  <Check size={14} />
-                  Mark all read
+                <button onClick={handleMarkAllAsRead} className="mark-all-read-btn" title="Mark all as read">
+                  <Check size={14} /> Clear All
                 </button>
               )}
               <button 
@@ -280,17 +238,11 @@ const NotificationDropdown = () => {
               ))
             )}
           </div>
-
-          {notifications.length > 0 && (
-            <div className="notification-footer">
-              <button 
-                className="view-all-btn"
-                onClick={() => window.location.href = '/notifications'}
-              >
-                View all notifications
-              </button>
-            </div>
-          )}
+          <div className="notification-footer">
+            <button className="view-all-btn" onClick={() => window.location.href = '/notifications'}>
+              View all notifications →
+            </button>
+          </div>
         </div>
       )}
     </div>

@@ -252,18 +252,36 @@ const PaymentPage = () => {
             </div>
 
             <button
-              onClick={handlePayment}
-              disabled={!booking?.technician}
-              className={`w-full mt-10 py-6 rounded-2xl font-black text-[11px] uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-4 group shadow-lg ${
-                booking?.technician
-                  ? "bg-slate-900 text-white hover:bg-indigo-600 active:scale-95"
-                  : "bg-slate-100 text-slate-300 cursor-not-allowed"
-              }`}
-            >
-              <CreditCard size={18} />
-              {booking?.technician ? "Execute_Payment" : "Awaiting_Tech_Link"}
-              <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-            </button>
+  onClick={handlePayment}
+  // Disable if no technician is assigned OR if the transaction is already finalized
+  disabled={!booking?.technician || booking?.payment?.status === "paid"}
+  className={`w-full mt-10 py-6 rounded-2xl font-black text-[11px] uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-4 group shadow-lg ${
+    booking?.payment?.status === "paid"
+      ? "bg-emerald-500 text-white cursor-default" // --- PAID STATE ---
+      : booking?.technician
+      ? "bg-slate-900 text-white hover:bg-indigo-600 active:scale-95 shadow-indigo-100" // --- READY STATE ---
+      : "bg-slate-100 text-slate-300 cursor-not-allowed" // --- LOCKED STATE ---
+  }`}
+>
+  {/* Dynamic Icon Logic */}
+  {booking?.payment?.status === "paid" ? (
+    <CheckCircle size={18} className="animate-in zoom-in duration-300" />
+  ) : (
+    <CreditCard size={18} className={booking?.technician ? "text-amber-400" : ""} />
+  )}
+
+  {/* Dynamic Text Logic */}
+  {booking?.payment?.status === "paid" 
+    ? "Transaction_Finalized" 
+    : booking?.technician 
+    ? "Execute_Payment" 
+    : "Awaiting_Tech_Link"}
+
+  {/* Conditional Arrow (Hide if paid) */}
+  {booking?.payment?.status !== "paid" && (
+    <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+  )}
+</button>
           </div>
         </div>
       </main>
