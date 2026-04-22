@@ -75,7 +75,9 @@ class TechnicianNotificationService {
           bookingId: booking.bookingId,
           applianceName: appliance ? `${appliance.brand} ${appliance.model}` : 'Unknown Appliance',
           serviceType: booking.serviceType,
-          address: `${booking.serviceAddress.street}, ${booking.serviceAddress.city}`,
+          issueDescription: booking.issueDescription,
+          priority: booking.priority,
+          address: `${booking.serviceAddress.street}, ${booking.serviceAddress.city}, ${serviceAddress.state}`,
           preferredDate: booking.preferredDate,
           preferredTime: booking.preferredTime,
           finalAmount: booking.estimatedCost.total
