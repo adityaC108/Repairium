@@ -9,7 +9,8 @@ import {
   verifyTechnician,
   manageUserStatus,
   manageTechnicianStatus,
-  getReports
+  getReports,
+  verifyTechnicianDocument
 } from '../controllers/adminController.js';
 import { authenticateAdmin } from '../middleware/auth.js';
 import { 
@@ -38,6 +39,7 @@ router.put('/users/:userId/status', validateUserManagement, manageUserStatus);
 router.get('/technicians', getAllTechnicians);
 router.put('/technicians/:technicianId/status', validateTechnicianManagement, manageTechnicianStatus);
 router.put('/technicians/:technicianId/verify', validateTechnicianManagement, verifyTechnician);
+router.put('/technicians/:technicianId/documents/:documentType', verifyTechnicianDocument);
 
 // Booking Management Routes
 router.get('/bookings', getAllBookings);

@@ -566,5 +566,6 @@ export default {
   verifyTechnician,
   manageUserStatus,
   manageTechnicianStatus,
-  getReports
+  getReports,
+  verifyTechnicianDocument
 };
