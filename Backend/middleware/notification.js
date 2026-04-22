@@ -367,6 +367,21 @@ export const sendTemplatedEmail = async (email, template, data = {}) => {
         subject: "You received a new review",
         html: generateNewReviewTemplate(data),
       },
+      // Add these to your email template configuration object
+      technicianVerification: {
+        subject: "Update: Verification Status Updated",
+        html: generateTechnicianVerificationTemplate(data), // For 'verified' or 'rejected' status
+      },
+
+      accountStatusUpdate: {
+        subject: "Update: Account Status Updated",
+        html: generateAccountStatusTemplate(data), // For 'activated' or 'deactivated'
+      },
+
+      documentsVerified: {
+        subject: "Update: Documentation Status Updated",
+        html: generateDocumentVerifiedTemplate(data), // For specific document approvals/rejections
+      },
     };
 
     const emailTemplate = templates[template];
@@ -824,7 +839,7 @@ const generateNewServiceRequestTemplate = (data) => {
             <p><strong>Appliance:</strong> ${data.applianceName}</p>
             <p><strong>Service Type:</strong> ${data.serviceType}</p>
             <p><strong>Address:</strong> ${data.address}</p>
-            <p><strong>Urgency:</strong> ${data.urgency}</p>
+            <p><strong>Urgency:</strong> ${data.priority}</p>
             <p><strong>Amount:</strong> ₹${data.finalAmount}</p>
             <p><strong>Preferred Date:</strong> ${data.preferredDate}</p>
             <p><strong>Preferred Time:</strong> ${data.preferredTime}</p>
@@ -966,3 +981,94 @@ const generateServiceRequestResponseTemplate = (data) => {
     </html>
   `;
 };
+
+const generateTechnicianVerificationTemplate = (data) => `
+<div style="font-family: 'Helvetica', sans-serif; color: #1e293b; max-width: 600px; border: 1px solid #f1f5f9; padding: 40px; border-radius: 24px;">
+  <p style="font-size: 10px; font-weight: 900; color: #4f46e5; text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: 20px;">
+    // SYSTEM_AUTH_PROTOCOL
+  </p>
+  <h1 style="font-style: italic; font-weight: 900; font-size: 32px; letter-spacing: -0.05em; text-transform: uppercase; margin-bottom: 8px;">
+    Identity <span style="color: #cbd5e1; font-weight: 300;">Status.</span>
+  </h1>
+  <p style="font-size: 14px; font-weight: 700; margin-bottom: 32px;">Hello, ${data.firstName}</p>
+  
+  <div style="background-color: #f8fafc; padding: 24px; border-radius: 16px; border: 1px solid #f1f5f9; margin-bottom: 32px;">
+    <p style="font-size: 10px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px;">Registry Status</p>
+    <p style="font-size: 18px; font-weight: 900; color: ${data.verificationStatus === 'verified' ? '#10b981' : '#f43f5e'}; text-transform: uppercase;">
+      ${data.verificationStatus}
+    </p>
+    ${data.rejectionReason ? `<p style="font-size: 12px; color: #64748b; margin-top: 12px; font-style: italic;">"Reason: ${data.rejectionReason}"</p>` : ''}
+  </div>
+
+  <p style="font-size: 12px; color: #64748b; line-height: 1.6; margin-bottom: 32px;">
+    Your technician node verification has been processed. ${data.verificationStatus === 'verified' 
+      ? 'Your credentials have been reconciled with our core registry. You are now authorized for fleet deployment.' 
+      : 'Discrepancies were found during the audit. Please review the reason above and re-sync your credentials.'}
+  </p>
+
+  <div style="font-size: 9px; color: #cbd5e1; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em;">
+    NODE_ID: ${Math.random().toString(36).substr(2, 9).toUpperCase()} // v3.4.0
+  </div>
+</div>
+`;
+
+const generateAccountStatusTemplate = (data) => `
+<div style="font-family: 'Helvetica', sans-serif; color: #1e293b; max-width: 600px; border: 1px solid #f1f5f9; padding: 40px; border-radius: 24px;">
+  <p style="font-size: 10px; font-weight: 900; color: #ef4444; text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: 20px;">
+    // SECURITY_OVERRIDE_ALERT
+  </p>
+  <h1 style="font-style: italic; font-weight: 900; font-size: 32px; letter-spacing: -0.05em; text-transform: uppercase; margin-bottom: 32px;">
+    Operational <span style="color: #cbd5e1; font-weight: 300;">State.</span>
+  </h1>
+  
+  <p style="font-size: 14px; font-weight: 700; margin-bottom: 16px;">Personnel: ${data.firstName}</p>
+  
+  <div style="background-color: ${data.status === 'activated' ? '#f0fdf4' : '#fef2f2'}; padding: 24px; border-radius: 16px; border: 1px solid ${data.status === 'activated' ? '#dcfce7' : '#fee2e2'};">
+    <p style="font-size: 11px; font-weight: 900; color: ${data.status === 'activated' ? '#166534' : '#991b1b'}; text-transform: uppercase; margin-bottom: 4px;">Deployment Status</p>
+    <p style="font-size: 16px; font-weight: 900; color: #1e293b; text-transform: uppercase;">
+      Account ${data.status}
+    </p>
+    ${data.reason ? `<p style="font-size: 12px; color: #64748b; margin-top: 8px;">Log: ${data.reason}</p>` : ''}
+  </div>
+
+  <p style="font-size: 11px; color: #94a3b8; margin-top: 40px; text-transform: uppercase; letter-spacing: 0.1em;">
+    Action synchronized by Admin Terminal // ${new Date().toLocaleDateString()}
+  </p>
+</div>
+`;
+
+const generateDocumentVerifiedTemplate = (data) => `
+<div style="font-family: 'Helvetica', sans-serif; color: #1e293b; max-width: 600px; border: 1px solid #f1f5f9; padding: 40px; border-radius: 24px;">
+  <p style="font-size: 10px; font-weight: 900; color: #4f46e5; text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: 20px;">
+    // REGISTRY_AUDIT_PROTOCOL
+  </p>
+  <h1 style="font-style: italic; font-weight: 900; font-size: 32px; letter-spacing: -0.05em; text-transform: uppercase; margin-bottom: 32px;">
+    Asset <span style="color: #cbd5e1; font-weight: 300;">Audit.</span>
+  </h1>
+
+  <div style="border-left: 4px solid #4f46e5; padding-left: 20px; margin-bottom: 32px;">
+    <p style="font-size: 10px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px;">Target Asset</p>
+    <p style="font-size: 18px; font-weight: 900; color: #1e293b; text-transform: uppercase;">${data.documentType}</p>
+  </div>
+
+  <div style="display: flex; gap: 20px; margin-bottom: 32px;">
+    <div style="flex: 1; background-color: #f8fafc; padding: 20px; border-radius: 12px;">
+      <p style="font-size: 9px; font-weight: 900; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px;">Outcome</p>
+      <p style="font-size: 14px; font-weight: 900; color: #1e293b;">${data.status}</p>
+    </div>
+    <div style="flex: 1; background-color: #f8fafc; padding: 20px; border-radius: 12px;">
+      <p style="font-size: 9px; font-weight: 900; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px;">System Action</p>
+      <p style="font-size: 14px; font-weight: 900; color: #4f46e5;">${data.systemAction}</p>
+    </div>
+  </div>
+
+  <div style="background-color: #fff7ed; padding: 20px; border-radius: 12px; border: 1px solid #ffedd5; margin-bottom: 32px;">
+    <p style="font-size: 9px; font-weight: 900; color: #c2410c; text-transform: uppercase; margin-bottom: 4px;">Audit Feedback</p>
+    <p style="font-size: 12px; font-weight: 700; color: #7c2d12;">${data.reason}</p>
+  </div>
+
+  <p style="font-size: 11px; color: #cbd5e1; text-align: center;">
+    All financial and legal nodes must be reconciled for fleet access.
+  </p>
+</div>
+`;

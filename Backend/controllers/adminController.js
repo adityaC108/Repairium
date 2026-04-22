@@ -27,7 +27,7 @@ export const getAdminProfile = async (req, res) => {
     });
   }
 };
-    
+
 // Update Admin Profile
 export const updateAdminProfile = async (req, res) => {
   try {
@@ -78,13 +78,13 @@ export const getDashboardStatistics = async (req, res) => {
 
     // Technician statistics
     const totalTechnicians = await Technician.countDocuments({ isActive: true });
-    const verifiedTechnicians = await Technician.countDocuments({ 
-      isActive: true, 
-      verificationStatus: 'verified' 
+    const verifiedTechnicians = await Technician.countDocuments({
+      isActive: true,
+      verificationStatus: 'verified'
     });
-    const pendingVerification = await Technician.countDocuments({ 
-      isActive: true, 
-      verificationStatus: 'pending' 
+    const pendingVerification = await Technician.countDocuments({
+      isActive: true,
+      verificationStatus: 'pending'
     });
 
     // Booking statistics
@@ -501,6 +501,58 @@ export const getReports = async (req, res) => {
   } catch (error) {
     console.error("Reports error:", error);
     res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// Verify Specific Technician Document
+export const verifyTechnicianDocument = async (req, res) => {
+  try {
+    const { technicianId } = req.params;
+    const { documentType, status, reason } = req.body; // documentType: 'aadharCard', 'panCard', 'bankDetails', etc.
+
+    const validDocs = ['aadharCard', 'panCard', 'addressProof', 'policeVerification', 'bankDetails'];
+    if (!validDocs.includes(documentType)) {
+      return res.status(400).json({ success: false, message: 'Invalid document type' });
+    }
+
+    const updatePath = documentType === 'bankDetails'
+      ? { "bankDetails.isVerified": status === 'approved' }
+      : { [`documents.${documentType}.status`]: status, [`documents.${documentType}.rejectionReason`]: reason || null };
+
+    const technician = await Technician.findByIdAndUpdate(
+      technicianId,
+      { $set: updatePath },
+      { new: true }
+    );
+
+    if (!technician) return res.status(404).json({ success: false, message: 'Technician not found' });
+
+    // Internal Logic: If all critical docs are verified, auto-promote isVerified status
+    const docs = technician.documents;
+    const allVerified = docs.aadharCard.status === 'approved' &&
+      docs.panCard.status === 'approved' &&
+      technician.bankDetails.isVerified;
+
+    if (allVerified && technician.verificationStatus !== 'verified') {
+      technician.verificationStatus = 'verified';
+      technician.isVerified = true;
+      await technician.save();
+    }
+
+    // Send targeted notification
+    await sendPushNotification(technician._id, 'Document Update', `Your ${documentType} has been ${status}`);
+    // Inside verifyTechnicianDocument controller
+    await sendTemplatedEmail(technician.email, 'documentStatusUpdate', {
+      firstName: technician.firstName,
+      documentType: documentType.replace(/([A-Z])/g, ' $1').toUpperCase(), // Formats 'aadharCard' to 'AADHAR CARD'
+      status: status.toUpperCase(), // 'APPROVED' or 'REJECTED'
+      reason: reason || 'Your document met all verification protocols.',
+      systemAction: status === 'approved' ? 'REGISTRY_SYNC_COMPLETE' : 'RE-UPLOAD_REQUIRED'
+    });
+
+    res.status(200).json({ success: true, message: `Document ${status} successfully`, data: technician });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 

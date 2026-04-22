@@ -73,7 +73,7 @@ export const createBooking = async (req, res) => {
 
     // Notify logic (Fire and forget)
     // notifyNearbyTechnicians(newBooking, appliance);
-    TechnicianNotificationService.notifyNewBookingRequest(newBooking).catch(err => console.error(err));
+    TechnicianNotificationService.notifyNewBookingRequest(newBooking, appliance).catch(err => console.error(err));
 
     return res.status(201).json({ success: true, data: newBooking });
   } catch (error) {
