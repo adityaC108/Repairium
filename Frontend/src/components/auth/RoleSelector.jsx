@@ -1,11 +1,10 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { User, Wrench, Shield } from "lucide-react";
+import { User, Wrench } from "lucide-react";
 
 const roles = [
   { name: "user", label: "User", icon: User },
   { name: "technician", label: "Technician", icon: Wrench },
-  { name: "admin", label: "Admin", icon: Shield },
 ];
 
 const RoleSelector = ({ setRole }) => {
@@ -15,7 +14,7 @@ const RoleSelector = ({ setRole }) => {
       style={{ background: "var(--hero-gradient)" }}
     >
       {/* Glow */}
-           <div className="absolute w-72 h-72 bg-gray-500 blur-[220px] rounded-full bottom-20 left-10" />
+      <div className="absolute w-72 h-72 bg-gray-500 blur-[220px] rounded-full bottom-20 left-10" />
       <div className="absolute w-72 h-72 bg-slate-500 blur-[150px] rounded-full top-20 right-10" />
 
       <motion.div
@@ -41,10 +40,7 @@ const RoleSelector = ({ setRole }) => {
                 bg-primary/10 text-foreground border border-border
                 hover:bg-primary hover:text-primary-foreground transition"
               >
-                {/* Icon */}
                 <Icon size={18} />
-
-                {/* Text */}
                 <span>{role.label}</span>
               </motion.button>
             );
@@ -55,4 +51,4 @@ const RoleSelector = ({ setRole }) => {
   );
 };
 
-export default RoleSelector;  
+export default RoleSelector;
