@@ -8,6 +8,7 @@ import {
   LogOut,
   Cpu,
   User2,
+  Refrigerator,
 } from "lucide-react";
 
 const AdminSidebar = () => {
@@ -31,6 +32,12 @@ const AdminSidebar = () => {
       links: [
         { name: "All_Bookings", path: "/admin/bookings", icon: <ClipboardList size={18} /> },
       ]
+    },
+    {
+      group: "Appliance_Control",
+      links: [
+        { name: "All_Appliances", path: "/admin/appliances", icon: <Refrigerator size={18} /> },
+      ]
     }
   ];
 
@@ -38,7 +45,7 @@ const AdminSidebar = () => {
     <div className="flex flex-col h-full bg-slate-900 text-slate-300 p-6 border-r border-slate-800">
       
       {/* --- BRAND LOGO SECTION --- */}
-      <div className="flex items-center gap-3 px-2 mb-12">
+      <div className="flex items-center gap-3 px-2 mb-6">
         <div className="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
           <Cpu size={22} className="animate-pulse" />
         </div>
@@ -49,10 +56,10 @@ const AdminSidebar = () => {
       </div>
 
       {/* --- NAVIGATION REGISTRY --- */}
-      <nav className="flex-1 space-y-8">
+      <nav className="flex-1 space-y-4">
         {menuGroups.map((group) => (
           <div key={group.group}>
-            <h3 className="px-4 text-[9px] font-black text-slate-600 uppercase tracking-[0.4em] mb-4">
+            <h3 className="px-4 text-[9px] font-black text-slate-600 uppercase tracking-[0.4em] mb-2">
               {group.group}
             </h3>
             <div className="space-y-1">

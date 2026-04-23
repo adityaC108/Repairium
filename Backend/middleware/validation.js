@@ -2,16 +2,16 @@ import { body, validationResult } from 'express-validator';
 
 // Handle validation errors
 export const handleValidationErrors = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
+  const resp = validationResult(req);
+  if (resp?.errors?.length > 0) {
     return res.status(400).json({
       success: false,
       message: 'Validation failed',
-      errors: errors.array().map(error => ({
+      errors: resp?.errors.map(error => ({
         field: error.path,
         message: error.msg,
         value: error.value
-      }))
+      } ))
     });
   }
   next();
@@ -157,41 +157,6 @@ export const validateTechnicianRegistration = [
   body('experience')
     .isInt({ min: 0, max: 50 })
     .withMessage('Experience must be between 0 and 50 years'),
-
-  body('serviceAreas')
-    .isArray({ min: 1 })
-    .withMessage('At least one service area is required'),
-
-  body('serviceAreas.*.city')
-    .trim()
-    .notEmpty()
-    .withMessage('Service area city is required'),
-
-  body('serviceAreas.*.state')
-    .trim()
-    .notEmpty()
-    .withMessage('Service area state is required'),
-
-  body('serviceAreas.*.pincode')
-    .matches(/^\d{6}$/)
-    .withMessage('Service area pincode must be 6 digits'),
-
-  // Target the nested coordinates array specifically
-  body('serviceAreas.*.coordinates.coordinates')
-    .isArray({ min: 2, max: 2 })
-    .withMessage('Service area coordinates must be an array of [longitude, latitude]')
-    .custom((value) => {
-      const [lng, lat] = value;
-      if (lng < -180 || lng > 180 || lat < -90 || lat > 90) {
-        throw new Error('Invalid longitude or latitude values');
-      }
-      return true;
-    }),
-
-  // Also validate the type field while you're at it
-  body('serviceAreas.*.coordinates.type')
-    .equals('Point')
-    .withMessage('Coordinate type must be "Point"'),
 
   handleValidationErrors
 ];

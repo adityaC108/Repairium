@@ -15,7 +15,6 @@ class NotificationService {
     }
 
     this.user = user;
-    console.log("notification",this.user);
     
     // Connect to Socket.io server
     this.socket = io('http://localhost:5000', {

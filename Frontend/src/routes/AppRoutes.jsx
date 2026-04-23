@@ -44,6 +44,9 @@ import TechnicianDetail from "../pages/admin/TechnicianDetail";
 import UserDetail from "../pages/admin/UserDetail";
 import BookingDetail from "../pages/admin/BookingDetail";
 import AdminProfile from "../pages/admin/AdminProfile";
+import Appliances from "../pages/admin/Appliances";
+import AddAppliance from "../pages/admin/AddAppliances";
+import ApplianceDetail from "../pages/admin/ApplianceDetail";
 
 const AppRoutes = () => {
   return (
@@ -346,6 +349,43 @@ const AppRoutes = () => {
             <RoleRoute allowedRoles={["admin"]}>
               <AdminLayout>
                 <BookingDetail />
+              </AdminLayout>
+            </RoleRoute>
+          </ProtectedRoute>
+        }
+      />
+      {/* Appliances */}
+      <Route
+        path="/admin/appliances"
+        element={
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={["admin"]}>
+              <AdminLayout>
+                <Appliances />
+              </AdminLayout>
+            </RoleRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/appliances/new"
+        element={
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={["admin"]}>
+              <AdminLayout>
+                <AddAppliance />
+              </AdminLayout>
+            </RoleRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/appliances/:applianceId"
+        element={
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={["admin"]}>
+              <AdminLayout>
+                <ApplianceDetail />
               </AdminLayout>
             </RoleRoute>
           </ProtectedRoute>

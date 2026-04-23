@@ -33,7 +33,6 @@ const ProfilePage = () => {
   const fetchProfile = async () => {
     try {
       const res = await API.get("/users/profile");
-      console.log(res)
       const u = res.data.data.user;
       setForm({
         firstName: u.firstName || "",

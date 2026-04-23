@@ -274,18 +274,21 @@ export const authenticateTechnician = async (req, res, next) => {
     // Try to get token from Authorization header first
     let authHeader = req.headers.authorization;
     let token = null;
+
     
     if (authHeader && authHeader.startsWith('Bearer ')) {
       token = authHeader.substring(7);
     } else {
       // Fallback to cookie
       token = req.cookies.accessToken;
-    }
+    } 
+    
+    
     
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: 'Access denied. No token provided.'
+        message: 'Access denied. No token provided. 4'
       });
     }
     

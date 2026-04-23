@@ -79,7 +79,6 @@ export const login = async (req, res) => {
 
     // Check password
     const isPasswordValid = await user.comparePassword(password);
-    console.log('Is valid?:', isPasswordValid);
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
@@ -140,6 +139,17 @@ export const registerUser = async (req, res) => {
       });
     }
 
+    const userAddress = {
+      street: address.street,
+      city: address.city,
+      state: address.state,
+      pincode: address.pincode,
+      coordinates: {
+        type: 'Point',
+        coordinates: address.coordinates || [0, 0] // [lng, lat]
+      }
+    };
+
     // Create new user
     const user = new User({
       firstName,
@@ -147,7 +157,7 @@ export const registerUser = async (req, res) => {
       email,
       phone,
       password,
-      address
+      address: userAddress
     });
 
     // Generate verification token
@@ -255,18 +265,29 @@ export const registerAdmin = async (req, res) => {
 // Technician Registration
 export const registerTechnician = async (req, res) => {
   try {
-    const { firstName, lastName, email, phone, password, skills, experience, serviceAreas } = req.body;
+    const { 
+      firstName, lastName, email, phone, password, 
+      skills, experience, address 
+    } = req.body;
 
-    // Check if technician already exists
     const existingTechnician = await Technician.findOne({ email });
     if (existingTechnician) {
-      return res.status(400).json({
-        success: false,
-        message: 'Technician with this email already exists'
-      });
+      return res.status(400).json({ success: false, message: 'REGISTRY_CONFLICT: Email already exists.' });
     }
 
-    // Create new technician
+    // Mapping service area from provided address and coordinates
+    // Assuming the registration form sends the primary address as the first service area
+    const serviceAreaNode = {
+      city: address.city,
+      state: address.state,
+      pincode: address.pincode,
+      coordinates: {
+        type: 'Point',
+        coordinates: address.coordinates || [0, 0] // [lng, lat]
+      },
+      serviceRadius: 10 // Defaulting to 10km as per schema
+    };
+
     const technician = new Technician({
       firstName,
       lastName,
@@ -275,29 +296,26 @@ export const registerTechnician = async (req, res) => {
       password,
       skills,
       experience,
-      serviceAreas
+      serviceAreas: [serviceAreaNode],
+      currentLocation: {
+        type: 'Point',
+        coordinates: address.coordinates || [0, 0]
+      }
     });
 
-    // Generate verification token
     const verificationToken = technician.generateVerificationToken();
     await technician.save();
 
-    // Generate tokens
     const { accessToken, refreshToken } = generateTokens(technician._id, 'technician');
-
-    // Set refresh token cookie
     setRefreshTokenCookie(res, refreshToken);
 
-    // Send verification email
     await sendTemplatedEmail(email, 'verification', {
       firstName,
       verificationToken,
       verificationUrl: `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}&role=technician`
     });
 
-    // Remove password from response
     technician.password = undefined;
-
     res.status(201).json({
       success: true,
       message: 'Technician registration successful. Please check your email for verification.',
@@ -423,9 +441,6 @@ export const refreshAccessToken = async (req, res) => {
 export const getCurrentUser = async (req, res) => {
   try {
     const { user, userRole } = req;
-
-    console.log('getCurrentUser - user:', user); // Debug log
-    console.log('getCurrentUser - userRole:', userRole); // Debug log
 
     // Convert Mongoose document to plain object and remove sensitive information
     const userObject = user.toObject ? user.toObject() : { ...user };

@@ -42,6 +42,7 @@ export const getReverseGeocode = async (lat, lng) => {
     if (data && data.address) {
       const { address } = data;
       return {
+        street: address.suburb || '',
         city: address.city || address.town || address.village || address.district || '',
         state: address.state || '',
         pincode: address.postcode || ''

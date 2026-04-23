@@ -1,13 +1,21 @@
-import axios from 'axios';
+  import axios from "axios";
 
-// Create an instance for shared configuration
-const API = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api",
-    withCredentials: true, // Required for cookie-based auth
-    headers: {
-        'Content-Type': 'application/json',
+  const API = axios.create({
+    baseURL: "http://localhost:5000/api",
+    withCredentials: true, //
+  });
+
+  // ✅ Attach token automatically
+  API.interceptors.request.use(
+    (config) => {
+      const token = localStorage.getItem("token"); // your key
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      return config;
     },
-});
+    (error) => Promise.reject(error)
+  );
 
 const technicianServices = {
 

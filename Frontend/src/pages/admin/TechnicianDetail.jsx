@@ -21,7 +21,6 @@ const TechnicianDetail = () => {
             try {
                 const res = await adminService.getTechnicianById(techId);
                 setData(res.data);
-                console.log(res.data);
             } catch (err) {
                 console.error("TELEMETRY_LINK_FAILED", err);
             } finally {

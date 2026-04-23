@@ -18,14 +18,12 @@ const Register = () => {
         return "/technician/dashboard";
       case "user":
       default:
-        return "/";
+        return "/user/dashboard";
     }
   };
 
   const handleRegister = (data) => {
     login(data);
-
-    // ✅ FIX: safer role detection (backend sends both)
     
     const userRole = data?.role || data?.user?.role;
 
@@ -35,7 +33,7 @@ const Register = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen gap-4">
+    <div>
       {!role ? (
         <RoleSelector setRole={setRole} />
       ) : (

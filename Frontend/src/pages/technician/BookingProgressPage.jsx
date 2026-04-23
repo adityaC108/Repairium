@@ -28,13 +28,11 @@ const BookingProgressPage = () => {
       setLoading(true);
       // Reusing getBookings with an ID filter or creating a getBookingById
       const response = await technicianServices.getBookings();
-      console.log(response);
       const bookingsArray = response?.data?.data || response?.data?.bookings || [];
       
       // Match by MongoDB _id
       const found = bookingsArray.find(b => b.bookingId === bookingId);
       if (found){
-        console.log("Found booking:", found);
         setMongoId(found._id);
         setBooking(found);
         setNotes(found?.technicianNotes || '');

@@ -19,7 +19,6 @@ const Reports = () => {
         try {
           const res = await adminService.getReports(type);
 
-          console.log("Reports Data:", res);
 
           // 🔥 FIX BASED ON TYPE
           const reportArray = res?.data?.[type] || res?.data || [];

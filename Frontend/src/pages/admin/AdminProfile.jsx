@@ -23,7 +23,6 @@ const AdminProfile = () => {
       setLoading(true);
       const res = await adminService.getProfile();
       setAdmin(res.data.admin);
-      console.log("ADMIN", res.data.admin);
       setFormData({
         firstName: res.data.admin.firstName,
         lastName: res.data.admin.lastName,

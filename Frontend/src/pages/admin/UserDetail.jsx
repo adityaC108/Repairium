@@ -19,7 +19,6 @@ const UserDetail = () => {
         setLoading(true);
         const res = await adminService.getUserById(userId);
         setData(res.data);
-        console.log(res.data);
       } catch (err) {
         console.error("USER_TELEMETRY_LINK_FAILED", err);
       } finally {
