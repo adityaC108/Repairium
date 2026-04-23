@@ -23,6 +23,8 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+
+
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -164,7 +166,7 @@ const Navbar = () => {
                         color={colors.textMain}
                       />
                       <DropdownItem
-                        onClick={() => { navigate('/user/profile'); setDropdownOpen(false); }}
+                        onClick={() => { navigate(`/${user?.role}/profile`); setDropdownOpen(false); }}
                         icon={<Settings size={18} />}
                         label="Profile Settings"
                         color={colors.textMain}

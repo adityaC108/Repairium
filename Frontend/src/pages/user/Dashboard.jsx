@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import API from "../../services/api";
 import BookingsChart from "../../components/charts/BookingsChart";
+import RepairumLogo from "../../components/logo/RepairumLogo";
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
@@ -55,6 +56,7 @@ const Dashboard = () => {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-end gap-8">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
+              <RepairumLogo width="24" height="24" className="opacity-80" />
               <div className="w-2 h-2 bg-indigo-600 rounded-full animate-pulse" />
               <span className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.4em]">System_User_Session</span>
             </div>

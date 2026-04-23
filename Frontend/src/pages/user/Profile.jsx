@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import API from "../../services/api";
 import { getCurrentLocation, getReverseGeocode } from "../../utils/locationHelper";
+import RepairumLogo from "../../components/logo/RepairumLogo";
 
 const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState("personal"); // personal, location
@@ -103,6 +104,7 @@ const ProfilePage = () => {
       <header className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
         <div className="space-y-4">
           <div className="flex items-center gap-4">
+            <RepairumLogo width="32" height="32" className="opacity-80" />
             <h1 className="text-6xl font-black text-slate-900 tracking-tighter italic uppercase">
               Identity <span className="text-slate-200 font-light">Node</span>
             </h1>

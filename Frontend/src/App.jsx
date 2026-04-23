@@ -15,8 +15,7 @@ function Layout() {
       {/* Toast */}
       <Toaster position="top-right" />
 
-      {/* ✅ Hide Navbar in Admin */}
-      {!isAdminRoute && <Navbar />}
+      { <Navbar />}
 
       {/* Routes */}
       <AppRoutes />

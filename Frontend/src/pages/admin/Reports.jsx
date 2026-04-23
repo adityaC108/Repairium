@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getReports } from "../../services/adminService";
+import adminService from "../../services/adminService";
 import {
   LineChart,
   Line,
@@ -17,7 +17,7 @@ const Reports = () => {
     useEffect(() => {
       const fetchReports = async () => {
         try {
-          const res = await getReports(type);
+          const res = await adminService.getReports(type);
 
           console.log("Reports Data:", res);
 

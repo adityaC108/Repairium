@@ -18,7 +18,6 @@ import PaymentSuccess from "../pages/PaymentSuccess"; // ✅ NEW
 // Dashboards
 import UserDashboard from "../pages/user/Dashboard";
 import TechnicianDashboard from "../pages/technician/Dashboard";
-import AdminDashboard from "../pages/admin/Dashboard";
 import Bookings from "../pages/admin/Bookings"
 
 import AdminLayout from "../components/admin/AdminLayout";
@@ -41,6 +40,10 @@ import BookingProgressPage from "../pages/technician/BookingProgressPage";
 import MyBookingsPage from "../pages/technician/MyBookingsPage";
 import CompletedBookingsPage from "../pages/technician/CompletedBookingsPage";
 import TechnicianReviews from "../pages/technician/TechnicianReviews";
+import TechnicianDetail from "../pages/admin/TechnicianDetail";
+import UserDetail from "../pages/admin/UserDetail";
+import BookingDetail from "../pages/admin/BookingDetail";
+import AdminProfile from "../pages/admin/AdminProfile";
 
 const AppRoutes = () => {
   return (
@@ -53,9 +56,7 @@ const AppRoutes = () => {
       <Route
         path="/"
         element={
-          <ProtectedRoute>
             <Home />
-          </ProtectedRoute>
         }
       />
 
@@ -224,8 +225,31 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/technician/bookings/:bookingId"
+        element={
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={["technician"]}>
+              <BookingProgressPage />
+            </RoleRoute>
+          </ProtectedRoute>
+        }
+      />
 
-      {/* ADMIN */}
+      ✅ ADMIN
+
+      <Route
+        path="/admin/profile"
+        element={
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={["admin"]}>
+              <AdminLayout>
+                <AdminProfile />
+              </AdminLayout>
+            </RoleRoute>
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/admin/dashboard"
         element={
@@ -238,6 +262,7 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/admin/reports"
         element={
@@ -251,24 +276,24 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/technician/bookings/:bookingId"
-        element={
-          <ProtectedRoute>
-            <RoleRoute allowedRoles={["technician"]}>
-              <BookingProgressPage />
-            </RoleRoute>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* ✅ ADMIN USERS */}
-      <Route
         path="/admin/users"
         element={
           <ProtectedRoute>
             <RoleRoute allowedRoles={["admin"]}>
               <AdminLayout>
                 <Users />
+              </AdminLayout>
+            </RoleRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/users/:userId"
+        element={
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={["admin"]}>
+              <AdminLayout>
+                <UserDetail />
               </AdminLayout>
             </RoleRoute>
           </ProtectedRoute>
@@ -288,6 +313,18 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/admin/technicians/:techId"
+        element={
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={["admin"]}>
+              <AdminLayout>
+                <TechnicianDetail />
+              </AdminLayout>
+            </RoleRoute>
+          </ProtectedRoute>
+        }
+      />
 
       {/* ✅ ADMIN BOOKINGS */}
       <Route
@@ -297,6 +334,18 @@ const AppRoutes = () => {
             <RoleRoute allowedRoles={["admin"]}>
               <AdminLayout>
                 <Bookings />
+              </AdminLayout>
+            </RoleRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/bookings/:bookingId"
+        element={
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={["admin"]}>
+              <AdminLayout>
+                <BookingDetail />
               </AdminLayout>
             </RoleRoute>
           </ProtectedRoute>
