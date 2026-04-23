@@ -4,22 +4,28 @@ import Technician from '../models/Technician.js';
 import Booking from '../models/Booking.js';
 import Review from '../models/Review.js';
 import { sendEmail, sendPushNotification, sendTemplatedEmail } from '../middleware/notification.js';
-import { paginate, createPaginationResponse } from '../utils/helpers.js';
+import { paginate, createPaginationResponse, uploadToCloudinary } from '../utils/helpers.js';
 
 // Get Admin Profile
 export const getAdminProfile = async (req, res) => {
   try {
-    const { admin } = req;
+    // req.admin should be populated by your protectAdmin middleware
+    const admin = await Admin.findById(req.user._id);
+
+    if (!admin) {
+      return res.status(404).json({
+        success: false,
+        message: 'NODE_NOT_FOUND: Admin registry entry missing'
+      });
+    }
 
     res.status(200).json({
       success: true,
       message: 'Admin profile retrieved successfully',
-      data: {
-        admin
-      }
+      data: { admin }
     });
   } catch (error) {
-    console.error('Get admin profile error:', error);
+    console.error('GET_ADMIN_PROFILE_ERROR:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve admin profile',
@@ -28,39 +34,225 @@ export const getAdminProfile = async (req, res) => {
   }
 };
 
+// Get User Detail
+export const getUserById = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // 1. Fetch User with security exclusions
+    const user = await User.findById(userId)
+      .select('-password -__v -resetPasswordToken -resetPasswordExpires')
+      .lean();
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'NODE_NOT_FOUND: The requested User identity does not exist in the registry.'
+      });
+    }
+
+    // 2. Telemetry: Fetch recent mission history for this user
+    // We import Booking dynamically to avoid circular dependencies if any
+    const Booking = await import('../models/Booking.js').then(m => m.default);
+    const recentBookings = await Booking.find({ user: userId })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .populate('appliance', 'name brand category')
+      .populate('technician', 'firstName lastName')
+      .lean();
+
+    res.status(200).json({
+      success: true,
+      message: 'User identity reconciled successfully',
+      data: {
+        profile: user,
+        activity: {
+          recentBookings,
+          totalBookings: await Booking.countDocuments({ user: userId })
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get User By ID Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'REGISTRY_FETCH_FAILED',
+      error: error.message
+    });
+  }
+};
+
+// Get Technician
+export const getTechnicianById = async (req, res) => {
+  try {
+    const { technicianId } = req.params;
+
+    // 1. Fetch Technician with all professional metadata
+    const technician = await Technician.findById(technicianId)
+      .select('-password -__v')
+      .lean();
+
+    if (!technician) {
+      return res.status(404).json({
+        success: false,
+        message: 'FLEET_NODE_NOT_FOUND: The requested Technician identity is not active in the registry.'
+      });
+    }
+
+    // 2. Telemetry: Fetch Mission Statistics & Recent History
+    const Booking = await import('../models/Booking.js').then(m => m.default);
+    
+    // Fetch last 10 missions
+    const missionHistory = await Booking.find({ technician: technicianId })
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .populate('user', 'firstName lastName')
+      .populate('appliance', 'name brand')
+      .lean();
+
+    // Calculate dynamic stats for the HUD
+    const stats = {
+      totalMissions: await Booking.countDocuments({ technician: technicianId }),
+      completedMissions: await Booking.countDocuments({ technician: technicianId, status: 'completed' }),
+      pendingMissions: await Booking.countDocuments({ technician: technicianId, status: 'pending' }),
+    };
+
+    res.status(200).json({
+      success: true,
+      message: 'Technician telemetry reconciled',
+      data: {
+        profile: technician,
+        stats,
+        history: missionHistory
+      }
+    });
+  } catch (error) {
+    console.error('Get Technician By ID Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'FLEET_REGISTRY_FETCH_FAILED',
+      error: error.message
+    });
+  }
+};
+
 // Update Admin Profile
 export const updateAdminProfile = async (req, res) => {
   try {
-    const { admin } = req;
-    const updates = req.body;
+    const admin = req.user;
+    
+    const updates = { ...req.body };
 
-    // Remove sensitive fields
-    delete updates.password;
-    delete updates.role;
-    delete updates.permissions;
-    delete updates._id;
-    delete updates.createdAt;
-    delete updates.updatedAt;
-    delete updates.__v;
+    // 🛡️ SECURITY_GATE: Strip unauthorized or sensitive fields
+    const restrictedFields = [
+      'password', 
+      'role', 
+      'permissions', 
+      '_id', 
+      'email', // Email usually requires a separate verification protocol
+      'createdAt', 
+      'updatedAt', 
+      '__v'
+    ];
+
+    restrictedFields.forEach(field => delete updates[field]);
+
+    // Handle empty update body
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'UPDATE_REJECTED: No valid fields provided for reconciliation'
+      });
+    }
 
     const updatedAdmin = await Admin.findByIdAndUpdate(
       admin._id,
-      updates,
-      { new: true, runValidators: true }
+      { $set: updates },
+      { 
+        new: true, 
+        runValidators: true,
+        context: 'query' 
+      }
     );
 
     res.status(200).json({
       success: true,
-      message: 'Profile updated successfully',
+      message: 'Registry_Node updated successfully',
       data: {
         admin: updatedAdmin
       }
     });
   } catch (error) {
-    console.error('Update admin profile error:', error);
+    console.error('UPDATE_ADMIN_PROFILE_ERROR:', error);
+    
+    // Check for Mongoose validation errors
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(val => val.message);
+      return res.status(400).json({
+        success: false,
+        message: 'VALIDATION_FAILED',
+        errors: messages
+      });
+    }
+
     res.status(500).json({
       success: false,
-      message: 'Failed to update profile',
+      message: 'Failed to update profile telemetry',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * @desc    Update Admin Avatar Telemetry
+ * @route   PUT /api/admin/profile/avatar
+ * @access  Private/Admin
+ */
+export const updateAdminAvatar = async (req, res) => {
+  try {
+    const admin = req.user; // Extracted from protectAdmin middleware
+
+    // 1. Validate File Existence
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'UPLOAD_ERROR: No image file detected in request buffer'
+      });
+    }
+
+    // 2. Asset Upload to Cloudinary
+    // We use a dedicated folder 'admin_avatars' for clear asset partitioning
+    const cloudinaryResponse = await uploadToCloudinary(req.file.path, 'admin_avatars');
+    const avatarUrl = cloudinaryResponse.secure_url;
+
+    // 3. Registry Reconciliation (Update Database)
+    const updatedAdmin = await Admin.findByIdAndUpdate(
+      admin._id,
+      { avatar: avatarUrl },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedAdmin) {
+      return res.status(404).json({
+        success: false,
+        message: 'NODE_NOT_FOUND: Admin record lost during sync'
+      });
+    }
+
+    // 4. Dispatch Success
+    res.status(200).json({
+      success: true,
+      message: 'Avatar_Node updated successfully',
+      data: {
+        avatar: avatarUrl,
+        admin: updatedAdmin
+      }
+    });
+  } catch (error) {
+    console.error('UPDATE_ADMIN_AVATAR_ERROR:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to reconcile avatar telemetry',
       error: error.message
     });
   }
@@ -94,20 +286,38 @@ export const getDashboardStatistics = async (req, res) => {
     const cancelledBookings = await Booking.countDocuments({ status: 'cancelled' });
 
     // Revenue statistics
+    // 1. Calculate TOTAL Gross Revenue (All-time paid)
     const totalRevenue = await Booking.aggregate([
-      { $match: { status: 'completed', paymentStatus: 'paid' } },
-      { $group: { _id: null, total: { $sum: '$finalAmount' } } }
+      {
+        $match: {
+          status: 'completed',
+          'payment.status': 'paid' // 🔥 Use dot notation for nested fields
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          // 🔥 Sum the actual paid amount from the payment object
+          total: { $sum: '$payment.paidAmount' }
+        }
+      }
     ]);
 
+    // 2. Calculate MONTHLY Revenue (Last 30 days)
     const monthlyRevenue = await Booking.aggregate([
       {
         $match: {
           status: 'completed',
-          paymentStatus: 'paid',
+          'payment.status': 'paid',
           createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
         }
       },
-      { $group: { _id: null, total: { $sum: '$finalAmount' } } }
+      {
+        $group: {
+          _id: null,
+          total: { $sum: '$payment.paidAmount' }
+        }
+      }
     ]);
 
     // Appliance statistics
@@ -507,8 +717,8 @@ export const getReports = async (req, res) => {
 // Verify Specific Technician Document
 export const verifyTechnicianDocument = async (req, res) => {
   try {
-    const { technicianId } = req.params;
-    const { documentType, status, reason } = req.body; // documentType: 'aadharCard', 'panCard', 'bankDetails', etc.
+    const { technicianId, documentType } = req.params;
+    const { status, reason } = req.body; // documentType: 'aadharCard', 'panCard', 'bankDetails', etc.
 
     const validDocs = ['aadharCard', 'panCard', 'addressProof', 'policeVerification', 'bankDetails'];
     if (!validDocs.includes(documentType)) {
@@ -516,7 +726,7 @@ export const verifyTechnicianDocument = async (req, res) => {
     }
 
     const updatePath = documentType === 'bankDetails'
-      ? { "bankDetails.isVerified": status === 'approved' }
+      ? { "bankDetails.isVerified": status === 'verified' }
       : { [`documents.${documentType}.status`]: status, [`documents.${documentType}.rejectionReason`]: reason || null };
 
     const technician = await Technician.findByIdAndUpdate(
@@ -542,12 +752,12 @@ export const verifyTechnicianDocument = async (req, res) => {
     // Send targeted notification
     await sendPushNotification(technician._id, 'Document Update', `Your ${documentType} has been ${status}`);
     // Inside verifyTechnicianDocument controller
-    await sendTemplatedEmail(technician.email, 'documentStatusUpdate', {
+    await sendTemplatedEmail(technician.email, 'documentsVerified', {
       firstName: technician.firstName,
       documentType: documentType.replace(/([A-Z])/g, ' $1').toUpperCase(), // Formats 'aadharCard' to 'AADHAR CARD'
       status: status.toUpperCase(), // 'APPROVED' or 'REJECTED'
       reason: reason || 'Your document met all verification protocols.',
-      systemAction: status === 'approved' ? 'REGISTRY_SYNC_COMPLETE' : 'RE-UPLOAD_REQUIRED'
+      systemAction: status.toLowerCase() === 'approved' ? 'REGISTRY_SYNC_COMPLETE' : 'RE-UPLOAD_REQUIRED'
     });
 
     res.status(200).json({ success: true, message: `Document ${status} successfully`, data: technician });
@@ -567,5 +777,8 @@ export default {
   manageUserStatus,
   manageTechnicianStatus,
   getReports,
-  verifyTechnicianDocument
+  verifyTechnicianDocument,
+  getUserById,
+  getTechnicianById,
+  updateAdminAvatar
 };
