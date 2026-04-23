@@ -15,6 +15,7 @@ class NotificationService {
     }
 
     this.user = user;
+    console.log("notification",this.user);
     
     // Connect to Socket.io server
     this.socket = io('http://localhost:5000', {
@@ -315,12 +316,12 @@ class NotificationService {
 
   // Handle booking click
   handleBookingClick(booking) {
-    window.location.href = `/bookings/${booking.id}`;
+    window.location.href = `technician/bookings/${booking.id}`;
   }
 
   // Handle payment click
   handlePaymentClick(payment) {
-    window.location.href = '/earnings';
+    window.location.href = '/technician/earnings';
   }
 
   // Handle review click
@@ -410,7 +411,7 @@ class NotificationService {
   markNotificationRead(notificationId) {
     this.emit('mark_notification_read', {
       notificationId,
-      userId: this.user.id
+      userId: this.user._id
     });
   }
 

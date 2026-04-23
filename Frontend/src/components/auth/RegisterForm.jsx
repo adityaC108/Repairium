@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import API from "../../services/api";
 import { FiEye, FiEyeOff } from "react-icons/fi";
+import RepairumLogo from "../logo/RepairumLogo";
 
 const RegisterForm = ({ role, onRegister }) => {
   const navigate = useNavigate();
@@ -88,10 +89,13 @@ const RegisterForm = ({ role, onRegister }) => {
         animate={{ opacity: 1, y: 0 }}
         className="relative w-full max-w-lg bg-slate-100 backdrop-blur-xl border border-gray-200 rounded-2xl p-8 shadow-xl"
       >
-        {/* Heading */}
-        <h2 className="text-2xl font-bold text-gray-900 text-center mb-6">
-          Register as <span className="text-primary">{role}</span>
-        </h2>
+        {/* Logo and Heading */}
+        <div className="flex flex-col items-center gap-4 mb-6">
+          <RepairumLogo width="64" height="64" />
+          <h2 className="text-2xl font-bold text-gray-900 text-center">
+            Register as <span className="text-primary">{role}</span>
+          </h2>
+        </div>
 
         {/* Error */}
         {error && (

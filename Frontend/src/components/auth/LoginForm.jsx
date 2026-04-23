@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import API from "../../services/api";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { ArrowRight, ShieldCheck, Activity, Cpu, Globe, Wrench } from "lucide-react";
+import RepairumLogo from "../logo/RepairumLogo";
 
 const LoginForm = ({ onLogin }) => {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -38,7 +39,9 @@ const LoginForm = ({ onLogin }) => {
         <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-indigo-500/10 rounded-full blur-[100px]" />
 
         <div className="relative z-10">
-
+          <div className="flex items-center gap-4 mb-8">
+            <RepairumLogo width="48" height="48" variant="light" />
+          </div>
           <h2 className="text-5xl lg:text-6xl font-black text-white italic tracking-tighter leading-[0.9] mb-8">
             Access <br /> <span className="text-slate-600">The Matrix.</span>
           </h2>

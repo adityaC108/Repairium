@@ -1037,38 +1037,59 @@ const generateAccountStatusTemplate = (data) => `
 </div>
 `;
 
-const generateDocumentVerifiedTemplate = (data) => `
-<div style="font-family: 'Helvetica', sans-serif; color: #1e293b; max-width: 600px; border: 1px solid #f1f5f9; padding: 40px; border-radius: 24px;">
-  <p style="font-size: 10px; font-weight: 900; color: #4f46e5; text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: 20px;">
-    // REGISTRY_AUDIT_PROTOCOL
+const generateDocumentVerifiedTemplate = (data) => {
+  // Logic for Dynamic Theming
+  const isVerified = data.status === 'verified';
+  
+  const theme = {
+    accent: isVerified ? '#4f46e5' : '#e11d48', // Indigo vs Rose
+    bgLight: isVerified ? '#f0f9ff' : '#fff1f2', // Light Blue vs Light Rose
+    statusColor: isVerified ? '#059669' : '#e11d48', // Emerald vs Rose
+    noteBg: isVerified ? '#f8fafc' : '#fef2f2',
+    iconColor: isVerified ? '#10b981' : '#f43f5e'
+  };
+
+  const systemMessage = isVerified 
+    ? "Node access maintained. All telemetry remains active." 
+    : "Node reconciliation failed. Asset requires re-upload.";
+
+  return `
+<div style="font-family: 'Helvetica', sans-serif; color: #1e293b; max-width: 600px; border: 1px solid #f1f5f9; padding: 40px; border-radius: 24px; background-color: #ffffff;">
+  <p style="font-size: 10px; font-weight: 900; color: ${theme.accent}; text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: 20px;">
+    // REGISTRY_AUDIT_PROTOCOL // ${isVerified ? 'SUCCESS' : 'HALT'}
   </p>
-  <h1 style="font-style: italic; font-weight: 900; font-size: 32px; letter-spacing: -0.05em; text-transform: uppercase; margin-bottom: 32px;">
+  
+  <h1 style="font-style: italic; font-weight: 900; font-size: 32px; letter-spacing: -0.05em; text-transform: uppercase; margin-bottom: 32px; color: #0f172a;">
     Asset <span style="color: #cbd5e1; font-weight: 300;">Audit.</span>
   </h1>
 
-  <div style="border-left: 4px solid #4f46e5; padding-left: 20px; margin-bottom: 32px;">
+  <div style="border-left: 4px solid ${theme.accent}; padding-left: 20px; margin-bottom: 32px;">
     <p style="font-size: 10px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px;">Target Asset</p>
-    <p style="font-size: 18px; font-weight: 900; color: #1e293b; text-transform: uppercase;">${data.documentType}</p>
+    <p style="font-size: 18px; font-weight: 900; color: #1e293b; text-transform: uppercase;">${data.documentType, ('$1')}</p>
   </div>
 
-  <div style="display: flex; gap: 20px; margin-bottom: 32px;">
-    <div style="flex: 1; background-color: #f8fafc; padding: 20px; border-radius: 12px;">
-      <p style="font-size: 9px; font-weight: 900; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px;">Outcome</p>
-      <p style="font-size: 14px; font-weight: 900; color: #1e293b;">${data.status}</p>
+  <div style="display: table; width: 100%; border-spacing: 10px 0; margin-left: -10px; margin-bottom: 32px;">
+    <div style="display: table-cell; width: 50%; background-color: #f8fafc; padding: 20px; border-radius: 12px; vertical-align: top;">
+      <p style="font-size: 9px; font-weight: 900; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px;">Audit Outcome</p>
+      <p style="font-size: 14px; font-weight: 900; color: ${theme.statusColor}; text-transform: uppercase;">${data.status}</p>
     </div>
-    <div style="flex: 1; background-color: #f8fafc; padding: 20px; border-radius: 12px;">
+    <div style="display: table-cell; width: 50%; background-color: #f8fafc; padding: 20px; border-radius: 12px; vertical-align: top;">
       <p style="font-size: 9px; font-weight: 900; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px;">System Action</p>
-      <p style="font-size: 14px; font-weight: 900; color: #4f46e5;">${data.systemAction}</p>
+      <p style="font-size: 14px; font-weight: 900; color: #0f172a; text-transform: uppercase;">${data.systemAction}</p>
     </div>
   </div>
 
-  <div style="background-color: #fff7ed; padding: 20px; border-radius: 12px; border: 1px solid #ffedd5; margin-bottom: 32px;">
-    <p style="font-size: 9px; font-weight: 900; color: #c2410c; text-transform: uppercase; margin-bottom: 4px;">Audit Feedback</p>
-    <p style="font-size: 12px; font-weight: 700; color: #7c2d12;">${data.reason}</p>
+  <div style="background-color: ${isVerified ? '#f8fafc' : '#fff5f5'}; padding: 24px; border-radius: 16px; border: 1px solid ${isVerified ? '#e2e8f0' : '#fee2e2'}; margin-bottom: 32px;">
+    <p style="font-size: 9px; font-weight: 900; color: ${isVerified ? '#64748b' : '#b91c1c'}; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.05em;">Justification_Log</p>
+    <p style="font-size: 13px; font-weight: 600; color: #334155; line-height: 1.6;">${data.reason}</p>
   </div>
 
-  <p style="font-size: 11px; color: #cbd5e1; text-align: center;">
-    All financial and legal nodes must be reconciled for fleet access.
-  </p>
+  <div style="text-align: center; padding-top: 10px; border-top: 1px solid #f1f5f9;">
+    <p style="font-size: 11px; font-weight: 700; color: #94a3b8; margin-bottom: 4px;">${systemMessage}</p>
+    <p style="font-size: 9px; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.1em;">
+      Engine_v3 // Automated_Telemetry_Service
+    </p>
+  </div>
 </div>
 `;
+};

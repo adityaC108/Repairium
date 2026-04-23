@@ -36,9 +36,9 @@ export const bookingService = {
   },
 
   // Get booking details
-  getBookingDetails: async (bookingId) => {
+  getBookingDetailsForAdmin: async (bookingId) => {
     try {
-      const response = await API.get(`/bookings/${bookingId}`);
+      const response = await API.get(`/bookings/admin/bookings/${bookingId}`);
       return response.data;
     } catch (error) {
       console.error('Error getting booking details:', error);

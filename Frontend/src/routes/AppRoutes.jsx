@@ -18,8 +18,11 @@ import PaymentSuccess from "../pages/PaymentSuccess"; // ✅ NEW
 // Dashboards
 import UserDashboard from "../pages/user/Dashboard";
 import TechnicianDashboard from "../pages/technician/Dashboard";
-import AdminDashboard from "../pages/admin/Dashboard";
 import Bookings from "../pages/admin/Bookings"
+
+import AdminLayout from "../components/admin/AdminLayout";
+import Dashboard from "../pages/admin/Dashboard";
+import Reports from "../pages/admin/Reports";
 
 // ✅ ADD THESE HERE
 import Users from "../pages/admin/Users";
@@ -37,11 +40,14 @@ import BookingProgressPage from "../pages/technician/BookingProgressPage";
 import MyBookingsPage from "../pages/technician/MyBookingsPage";
 import CompletedBookingsPage from "../pages/technician/CompletedBookingsPage";
 import TechnicianReviews from "../pages/technician/TechnicianReviews";
+import TechnicianDetail from "../pages/admin/TechnicianDetail";
+import UserDetail from "../pages/admin/UserDetail";
+import BookingDetail from "../pages/admin/BookingDetail";
+import AdminProfile from "../pages/admin/AdminProfile";
 
 const AppRoutes = () => {
   return (
     <Routes>
-
       {/* ❌ Public Routes */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
@@ -50,9 +56,7 @@ const AppRoutes = () => {
       <Route
         path="/"
         element={
-          <ProtectedRoute>
             <Home />
-          </ProtectedRoute>
         }
       />
 
@@ -77,7 +81,10 @@ const AppRoutes = () => {
         }
       />
 
-      <Route path="/user/reviews/:bookingId/:technicianId" element={<ReviewPage />} />
+      <Route
+        path="/user/reviews/:bookingId/:technicianId"
+        element={<ReviewPage />}
+      />
 
       <Route
         path="/about"
@@ -218,8 +225,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
-      {/* ADMIN */}
       <Route
         path="/technician/bookings/:bookingId"
         element={
@@ -231,13 +236,65 @@ const AppRoutes = () => {
         }
       />
 
-      {/* ✅ ADMIN USERS */}
+      ✅ ADMIN
+
+      <Route
+        path="/admin/profile"
+        element={
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={["admin"]}>
+              <AdminLayout>
+                <AdminProfile />
+              </AdminLayout>
+            </RoleRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/dashboard"
+        element={
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={["admin"]}>
+              <AdminLayout>
+                <Dashboard />
+              </AdminLayout>
+            </RoleRoute>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/reports"
+        element={
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={["admin"]}>
+              <AdminLayout>
+                <Reports />
+              </AdminLayout>
+            </RoleRoute>
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/admin/users"
         element={
           <ProtectedRoute>
             <RoleRoute allowedRoles={["admin"]}>
-              <Users />
+              <AdminLayout>
+                <Users />
+              </AdminLayout>
+            </RoleRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/users/:userId"
+        element={
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={["admin"]}>
+              <AdminLayout>
+                <UserDetail />
+              </AdminLayout>
             </RoleRoute>
           </ProtectedRoute>
         }
@@ -249,7 +306,21 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <RoleRoute allowedRoles={["admin"]}>
-              <Technicians />
+              <AdminLayout>
+                <Technicians />
+              </AdminLayout>
+            </RoleRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/technicians/:techId"
+        element={
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={["admin"]}>
+              <AdminLayout>
+                <TechnicianDetail />
+              </AdminLayout>
             </RoleRoute>
           </ProtectedRoute>
         }
@@ -261,18 +332,28 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <RoleRoute allowedRoles={["admin"]}>
-              <Bookings />
+              <AdminLayout>
+                <Bookings />
+              </AdminLayout>
+            </RoleRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/bookings/:bookingId"
+        element={
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={["admin"]}>
+              <AdminLayout>
+                <BookingDetail />
+              </AdminLayout>
             </RoleRoute>
           </ProtectedRoute>
         }
       />
 
       {/* 404 */}
-      <Route
-        path="*"
-        element={<NotFound />}
-      />
-
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 };
