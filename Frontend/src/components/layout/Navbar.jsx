@@ -12,7 +12,8 @@ import {
   Settings,
   ShieldCheck,
   BadgeCheck,
-  Bell
+  Bell,
+  Key
 } from "lucide-react";
 import useAuth from "../../hooks/useAuth";
 import NotificationDropdown from "../NotificationDropdown";
@@ -169,6 +170,12 @@ const Navbar = () => {
                         onClick={() => { navigate(`/${user?.role}/profile`); setDropdownOpen(false); }}
                         icon={<Settings size={18} />}
                         label="Profile Settings"
+                        color={colors.textMain}
+                      />
+                      <DropdownItem
+                        onClick={() => { navigate(`/change-password`); setDropdownOpen(false); }}
+                        icon={<Key size={18} />}
+                        label="Change Password"
                         color={colors.textMain}
                       />
                       <div className="h-px my-2 bg-slate-100" />
