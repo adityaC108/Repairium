@@ -94,13 +94,16 @@ const BookingDetail = () => {
             <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-2">
               <HardHat size={14} className="text-indigo-600" /> Technician_Details
             </h3>
-            <div className="space-y-4">
-              <InfoItem label="Full_Name" val={data.technician.fullName} />
-              <InfoItem label="Email_Registry" val={data.technician.email} />
-              <InfoItem label="Comms_Phone" val={data.technician.phone} />
+            {data.technician ? (
+              <div className="space-y-4">
+              <InfoItem label="Full_Name" val={data?.technician?.fullName || 'Not_Assigned'} />
+              <InfoItem label="Email_Registry" val={data?.technician?.email || 'Not_Assigned'} />
+              <InfoItem label="Comms_Phone" val={data?.technician?.phone || 'Not_Assigned'} />
               <div className="pt-4 mt-4 border-t border-slate-50">
               </div>
             </div>
+            ):(<p className="text-[11px] p-10 text-center font-bold text-slate-700/90 leading-relaxed uppercase">!! Technician_Not_Assigned !!</p>)}
+            
           </section>
 
           
