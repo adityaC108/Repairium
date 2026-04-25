@@ -3,10 +3,10 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import API from "../../services/api";
 import { FiEye, FiEyeOff } from "react-icons/fi";
-import { ArrowRight, ShieldCheck, Activity, Cpu, Globe, Wrench } from "lucide-react";
+import { ArrowRight, ShieldCheck, Activity, Cpu, Globe, Wrench, AlertCircle } from "lucide-react";
 import RepairumLogo from "../logo/RepairumLogo";
 
-const LoginForm = ({ onLogin }) => {
+const LoginForm = ({ onLogin, onFailure, showForgotLink }) => {
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -24,6 +24,7 @@ const LoginForm = ({ onLogin }) => {
       onLogin(res.data.data || res.data);
     } catch (err) {
       alert(err.response?.data?.message || "Authentication failed");
+      if (onFailure) onFailure(err);
     } finally {
       setLoading(false);
     }
@@ -31,7 +32,7 @@ const LoginForm = ({ onLogin }) => {
 
   return (
     <div className="h-[87vh] w-full flex flex-col mt-20 lg:flex-row bg-white font-sans text-slate-900">
-      
+
       {/* --- LEFT SIDE: BRANDING & SYSTEM INFO --- */}
       <div className="w-1/3 bg-slate-900 p-20 flex flex-col justify-between relative overflow-hidden">
         {/* Spatial Grid Effect */}
@@ -52,8 +53,8 @@ const LoginForm = ({ onLogin }) => {
 
         <div className="relative z-10 space-y-6">
           <div className="flex items-center gap-4">
-             <div className="h-px w-8 bg-indigo-500" />
-             <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em]">System Specs</span>
+            <div className="h-px w-8 bg-indigo-500" />
+            <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em]">System Specs</span>
           </div>
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-1">
@@ -70,7 +71,7 @@ const LoginForm = ({ onLogin }) => {
 
       {/* --- RIGHT SIDE: AUTHENTICATION FORM --- */}
       <div className="w-2/3 flex items-center justify-center bg-slate-50">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           className="w-full max-w-md space-y-12"
@@ -82,10 +83,10 @@ const LoginForm = ({ onLogin }) => {
             <p className="text-slate-400 text-xs font-medium">Verify your credentials to establish a secure link.</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-10">
+          <form onSubmit={handleSubmit} className="space-y-8">
             {/* Input: Email */}
             <div className="flex flex-col gap-2 group">
-              <label className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] group-focus-within:text-indigo-500 transition-colors">
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] group-focus-within:text-indigo-500 transition-colors">
                 Registry Email
               </label>
               <input
@@ -94,13 +95,13 @@ const LoginForm = ({ onLogin }) => {
                 required
                 placeholder="USER_ID@REPAIRIUM.SYS"
                 onChange={handleChange}
-                className="bg-transparent border-b-2 border-slate-50 py-3 text-sm font-bold text-slate-800 focus:border-slate-900 outline-none transition-all placeholder:text-slate-100 placeholder:text-[10px] placeholder:tracking-[0.2em]"
+                className="bg-transparent border-b-2 border-slate-50 py-3 text-sm font-bold text-slate-800 focus:border-slate-900 outline-none transition-all placeholder:text-slate-300 placeholder:text-[10px] placeholder:tracking-[0.2em]"
               />
             </div>
 
             {/* Input: Password */}
             <div className="flex flex-col gap-2 group relative">
-              <label className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] group-focus-within:text-indigo-500 transition-colors">
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] group-focus-within:text-indigo-500 transition-colors">
                 Security Key
               </label>
               <input
@@ -109,7 +110,7 @@ const LoginForm = ({ onLogin }) => {
                 required
                 placeholder="••••••••"
                 onChange={handleChange}
-                className="bg-transparent border-b-2 border-slate-50 py-3 text-sm font-bold text-slate-800 focus:border-slate-900 outline-none transition-all placeholder:text-slate-100"
+                className="bg-transparent border-b-2 border-slate-50 py-2 text-sm font-bold text-slate-800 focus:border-slate-900 outline-none transition-all placeholder:text-slate-300"
               />
               <button
                 type="button"
@@ -121,7 +122,23 @@ const LoginForm = ({ onLogin }) => {
             </div>
 
             {/* Actions */}
-            <div className="flex flex-col gap-6 pt-4">
+            <div className="flex flex-col gap-6">
+              {showForgotLink && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center gap-2"
+                >
+                  <AlertCircle size={12} className="text-rose-500" />
+                  <button
+                    type="button"
+                    onClick={() => navigate("/forgot-password")}
+                    className="text-[9px] font-black text-rose-500 hover:text-slate-900 uppercase tracking-widest transition-colors underline decoration-rose-500/30 underline-offset-4 cursor-pointer"
+                  >
+                    Forgotten_Password?
+                  </button>
+                </motion.div>
+              )}
               <button
                 type="submit"
                 disabled={loading}
@@ -134,7 +151,7 @@ const LoginForm = ({ onLogin }) => {
               </button>
 
               <div className="flex justify-between items-center px-2">
-                <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
                   No Node?
                 </span>
                 <button
@@ -150,10 +167,10 @@ const LoginForm = ({ onLogin }) => {
 
           {/* Footer Breadcrumb */}
           <div className="pt-8 flex items-center gap-4 text-slate-200">
-             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-             <span className="text-[9px] font-mono uppercase tracking-[0.3em] text-slate-300">
-               Network Status: Optimal // E2E_ACTIVE
-             </span>
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-[9px] font-mono uppercase tracking-[0.3em] text-slate-300">
+              Network Status: Optimal // E2E_ACTIVE
+            </span>
           </div>
         </motion.div>
       </div>

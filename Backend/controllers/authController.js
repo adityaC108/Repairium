@@ -580,6 +580,7 @@ export const resetPassword = async (req, res) => {
   try {
     const { token, role, newPassword } = req.body;
 
+
     // Find user by reset token
     let user;
     switch (role) {
@@ -696,7 +697,7 @@ export const uploadAvatar = async (req, res) => {
 export const verifyEmail = async (req, res) => {
   try {
     // Handle both query parameters (GET) and request body (POST)
-    const { token, role } = req.query || req.body;
+    const { token, role } = req.query;
 
     let user;
     switch (role) {

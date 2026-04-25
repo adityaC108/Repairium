@@ -62,7 +62,7 @@ router.post('/reset-password-request', resetPasswordRequest);
 router.post('/reset-password', resetPassword);
 
 // Email verification
-router.post('/verify-email', verifyEmail);
+// router.post('/verify-email', verifyEmail);
 router.get('/verify-email', verifyEmail); // Add GET route for query parameters
 
 // Avatar upload
